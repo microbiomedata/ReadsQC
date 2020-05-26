@@ -6,7 +6,7 @@ This workflow is replicate the [QA protocol](https://jgi.doe.gov/data-and-tools/
 
 ## Required Database
 
-![RQCFilterData Database](http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar)
+[RQCFilterData Database](http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar)
 
 It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
 
