@@ -6,7 +6,9 @@ This workflow is replicate the [QA protocol](https://jgi.doe.gov/data-and-tools/
 
 ## Required Database
 
-RQCFilterData Database Coming soon.  It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
+![RQCFilterData Database](http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar)
+
+It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
 
 ## Running Workflow in Cromwell
 You should run this on cori. There are three ways to run the workflow.  
@@ -24,17 +26,15 @@ Description of the files in each sud-directory:
 [microbiomedata/bbtools:38.44](https://hub.docker.com/r/microbiomedata/bbtools)
 
 ## Input files
-expects: database path, fastq (illumina paired-end interleaved fastq), output path
+
+1. database path, 
+2. fastq (illumina paired-end interleaved fastq), 
+3. output path
 
 ```
 {
     "jgi_rqcfilter.database": "/global/cfs/projectdirs/m3408/aim2/database", 
     "jgi_rqcfilter.input_files": [
-        "/global/cfs/cdirs/m3408/ficus/8471.3.103168.CCGTCC.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8434.1.102069.GCCAAT.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8573.3.104455.GCCAAT.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8435.3.102098.CCGTCC.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8382.5.100461.AGTCAA.fastq.gz", 
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.AGTTCC.fastq.gz", 
         "/global/cfs/cdirs/m3408/ficus/8434.1.102069.ACAGTG.fastq.gz", 
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
@@ -44,7 +44,20 @@ expects: database path, fastq (illumina paired-end interleaved fastq), output pa
 ```
 
 ## Output files
+
+The output will have one directory named by prefix of the fastq input file and a bunch of output files, including statistical numbers, status log and a shell script to reproduce the steps etc. 
+
+The main QC fastq output is named by prefix.anqdpht.fast.gz. 
+
 ```
+|-- 8434.1.102069.ACAGTG.anqdpht.fastq.gz
+|-- filterStats.txt
+|-- filterStats2.txt
+|-- adaptersDetected.fa
+|-- reproduce.sh
+|-- spikein.fq.gz
+|-- status.log
+|-- ...
 ```
 
 ## Workflow graph
