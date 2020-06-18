@@ -59,5 +59,3 @@ The main QC fastq output is named by prefix.anqdpht.fast.gz.
 |-- status.log
 |-- ...
 ```
-
-## Workflow graph
