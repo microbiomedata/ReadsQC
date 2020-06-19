@@ -122,3 +122,14 @@ Description of the files in each sud-directory in `GitHub Repo <https://github.c
  - `.json` file: the example input for the workflow
  - `.conf` file: the conf file for running Cromwell.
  - `.sh` file: the shell script for running the example workflow
+ 
+ Version Hisotry
+---------------
+- 1.0.0
+
+Point of contact
+----------------
+Original author: Brian Bushnell <bbushnell@lbl.gov>
+
+Package maintainer: Chienchi Lo <chienchi@lanl.gov>
+
