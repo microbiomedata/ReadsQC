@@ -12,7 +12,7 @@ Workflow Diagram
 
 .. image:: rqc_workflow.png
    :align: center
-   :scale: 75%
+   :scale: 50%
 
 Workflow Dependencies
 ---------------------
@@ -107,3 +107,18 @@ Requirements for Execution
 - Docker or other Container Runtime
 - Cromwell or other WDL-capable Workflow Execution Tool
 - > 40 GB RAM
+
+Running Workflow in Cromwell on Cori
+------------------------------------
+
+We provide two ways to run the workflow.  
+
+1. `SlurmCromwellShifter/`: The submit script will request a node and launch the Cromwell.  The Cromwell manages the workflow by using Shifter to run applications. 
+
+2. `CromwellSlurmShifter/`: The Cromwell run in head node and manages the workflow by submitting each step of workflow to compute node where applications were ran by Shifter.
+
+Description of the files in each sud-directory in `GitHub Repo <https://github.com/microbiomedata/ReadsQC>`_:
+ - `.wdl` file: the WDL file for workflow definition
+ - `.json` file: the example input for the workflow
+ - `.conf` file: the conf file for running Cromwell.
+ - `.sh` file: the shell script for running the example workflow
