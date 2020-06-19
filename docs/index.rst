@@ -12,6 +12,7 @@ Workflow Diagram
 
 .. image:: rqc_workflow.png
    :align: center
+   :scale: 75%
 
 Workflow Dependencies
 ---------------------
@@ -25,6 +26,7 @@ Database
 ~~~~~~~~
 
 - RQCFilterData Database `(RQCFilterData.tar) <http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar>`_ 
+    
     It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
 
 Workflow Availability
@@ -33,7 +35,7 @@ Workflow Availability
 The workflow is available in GitHub:
 https://github.com/microbiomedata/ReadsQC
 
-The container is available at Docker Hub (microbiomedata/mg-annotation):
+The container is available at Docker Hub (microbiomedata/bbtools):
 https://hub.docker.com/r/microbiomedata/bbtools
 
 
