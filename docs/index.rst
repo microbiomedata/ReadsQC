@@ -123,7 +123,7 @@ Description of the files in each sud-directory in `GitHub Repo <https://github.c
  - `.conf` file: the conf file for running Cromwell.
  - `.sh` file: the shell script for running the example workflow
  
-Version Hisotry
+Version History
 ---------------
 
 - 1.0.0
