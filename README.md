@@ -8,7 +8,7 @@ This workflow is replicate the [QA protocol](https://jgi.doe.gov/data-and-tools/
 
 [RQCFilterData Database](http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar)
 
-It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
+It is a 106G tar file includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
 
 ## Running Workflow in Cromwell
 You should run this on cori. We provide two ways to run the workflow.  

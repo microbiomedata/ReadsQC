@@ -27,7 +27,13 @@ Database
 
 - RQCFilterData Database `(RQCFilterData.tar) <http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar>`_ 
     
-    It includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
+    It is a 106G tar file includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
+    
+.. code-block:: bash
+
+	wget http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar
+	tar -xvf RQCFilterData.tar
+	rm RQCFilterData.tar
 
 Workflow Availability
 ---------------------
