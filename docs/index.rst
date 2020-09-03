@@ -25,16 +25,17 @@ Third party software
 Database 
 ~~~~~~~~
 
-- RQCFilterData Database `(RQCFilterData.tar) <http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar>`_ 
+- RQCFilterData Database `(RQCFilterData.tgz) <https://portal.nersc.gov/cfs/m3408/db/RQCFilterData.tgz>`_ 
     
     It is a 106G tar file includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
     
 .. code-block:: bash
 
-	wget http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar
-	tar -xvf RQCFilterData.tar
-	rm RQCFilterData.tar
-
+	mkdir refdata
+	wget https://portal.nersc.gov/cfs/m3408/db/RQCFilterData.tgz
+	tar -xvzf RQCFilterData.tgz -C refdata
+	rm RQCFilterData.tgz
+	
 Workflow Availability
 ---------------------
 
@@ -64,7 +65,7 @@ Inputs
 .. code-block:: JSON
 
     {
-        "jgi_rqcfilter.database": "/path/to/database", 
+        "jgi_rqcfilter.database": "/path/to/refdata", 
         "jgi_rqcfilter.input_files": [
             "/path/to/SRR7877884.fastq.gz", 
             "/path/to/Second.fastq.gz", 
@@ -115,15 +116,9 @@ Requirements for Execution
 - > 40 GB RAM
 
 Running Workflow in Cromwell on Cori
-------------------------------------
+------------------------------------  
 
-We provide two ways to run the workflow.  
-
-1. `SlurmCromwellShifter/`: The submit script will request a node and launch the Cromwell.  The Cromwell manages the workflow by using Shifter to run applications. 
-
-2. `CromwellSlurmShifter/`: The Cromwell run in head node and manages the workflow by submitting each step of workflow to compute node where applications were ran by Shifter.
-
-Description of the files in each sud-directory in `GitHub Repo <https://github.com/microbiomedata/ReadsQC>`_:
+Description of the files in `GitHub Repo <https://github.com/microbiomedata/ReadsQC>`_:
  - `.wdl` file: the WDL file for workflow definition
  - `.json` file: the example input for the workflow
  - `.conf` file: the conf file for running Cromwell.

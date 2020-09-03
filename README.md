@@ -6,16 +6,20 @@ This workflow is replicate the [QA protocol](https://jgi.doe.gov/data-and-tools/
 
 ## Required Database
 
-[RQCFilterData Database](http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar)
+* [RQCFilterData Database](https://portal.nersc.gov/cfs/m3408/db/RQCFilterData.tgz): It is a 106G tar file includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
 
-It is a 106G tar file includes reference datasets of artifacts, adapters, contaminants, phiX genome, host genomes.  
+* Prepare the Database
+
+```bash
+	mkdir -p refdata
+	wget https://portal.nersc.gov/cfs/m3408/db/RQCFilterData.tgz
+	tar xvzf RQCFilterData.tgz -C refdata
+	rm RQCFilterData.tgz
+```
 
 ## Running Workflow in Cromwell
-You should run this on cori. We provide two ways to run the workflow.  
-1. `SlurmCromwellShifter/`: The submit script will request a node and launch the Cromwell.  The Cromwell manages the workflow by using Shifter to run applications. 
-2. `CromwellSlurmShifter/`: The Cromwell run in head node and manages the workflow by submitting each step of workflow to compute node where applications were ran by Shifter.
 
-Description of the files in each sud-directory:
+Description of the files:
  - `.wdl` file: the WDL file for workflow definition
  - `.json` file: the example input for the workflow
  - `.conf` file: the conf file for running Cromwell.

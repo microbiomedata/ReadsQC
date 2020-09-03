@@ -2,7 +2,7 @@ workflow jgi_rqcfilter {
     Array[File] input_files
     String? outdir
     String bbtools_container="microbiomedata/bbtools:38.44"
-    String database="/global/cfs/projectdirs/m3408/aim2/database"
+    String database="/refdata"
 
     scatter(file in input_files) {
         call rqcfilter{
@@ -15,6 +15,11 @@ workflow jgi_rqcfilter {
        	input: outdir= outdir, rqcfilter_output=rqcfilter.stat
     }
 
+    meta {
+        author: "Chienchi Lo, B10, LANL"
+        email: "chienchi@lanl.gov"
+        version: "1.0.0"
+    }
 }
 
 task rqcfilter {
@@ -26,24 +31,17 @@ task rqcfilter {
      String filename_stat="filtered/filterStats.txt"
      String filename_stat2="filtered/filterStats2.txt"
      String dollar="$"
-     runtime{ mem: "110GB"
-             cpu: 32
-            time: "10:00:00"
-        jobname: "jgi_rqc"
+     runtime {
+            memory: "120 GiB"
+	    cpu:  16
+            database: database
      }
-    # runtime {
-     #       backend: "Local"
-      #      docker: container
-       #     memory: "120 GiB"
-	#    cpu:  16
-         #   database: database
-     #}
 
      command {
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-        shifter --image=${container} -V ${database}:/databases -- rqcfilter2.sh -Xmx105g threads=${dollar}(grep "model name" /proc/cpuinfo | wc -l) jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+        rqcfilter2.sh -Xmx105g threads=${dollar}(grep "model name" /proc/cpuinfo | wc -l) jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
      }
      output {
             File stdout = filename_outlog
@@ -67,10 +65,5 @@ task make_output{
 			done
  			chmod 764 -R ${outdir}
  	}
-	runtime{ mem: "2GB"
-                cpu: 1
-		time: "1:00:00"
-		jobname: "jgi_rqc_output"
-	}
 }
 
