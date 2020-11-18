@@ -21,7 +21,7 @@ workflow jgi_rqcfilter {
     
     parameter_meta {
         input_files: "illumina paired-end interleaved fastq files"
-	outdir: tThe final output directory path"
+	outdir: "The final output directory path"
         database : "database path to RQCFilterData directory"
         clean_fastq_files: "after QC fastq files"
     }
