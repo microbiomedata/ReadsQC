@@ -100,6 +100,7 @@ The main QC fastq output is named by prefix.anqdpht.fast.gz::
 
 	|-- SRR7877884.anqdpht.fastq.gz
 	|-- filterStats.txt
+	|-- filterStats.json
 	|-- filterStats2.txt
 	|-- adaptersDetected.fa
 	|-- reproduce.sh

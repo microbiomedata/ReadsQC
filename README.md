@@ -56,6 +56,7 @@ The main QC fastq output is named by prefix.anqdpht.fast.gz.
 ```
 |-- 8434.1.102069.ACAGTG.anqdpht.fastq.gz
 |-- filterStats.txt
+|-- filterStats.json
 |-- filterStats2.txt
 |-- adaptersDetected.fa
 |-- reproduce.sh
