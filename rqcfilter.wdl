@@ -40,6 +40,7 @@ task rqcfilter {
      String filename_errlog="stderr.log"
      String filename_stat="filtered/filterStats.txt"
      String filename_stat2="filtered/filterStats2.txt"
+     String filename_stat_json="filtered/filterStats.json"
      String dollar="$"
      runtime {
             docker: container
@@ -53,6 +54,7 @@ task rqcfilter {
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
         rqcfilter2.sh -Xmx105g threads=${dollar}(grep "model name" /proc/cpuinfo | wc -l) jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+        perl -ne 'chomp;  s/=/:/; push @a,$_ if($_);  END{print "{",join(",",@a),"}"; }' ${filename_stat} > ${filename_stat_json}
      }
      output {
             File stdout = filename_outlog
