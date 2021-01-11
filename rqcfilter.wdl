@@ -42,6 +42,7 @@ task rqcfilter {
      String filename_stat2="filtered/filterStats2.txt"
      String filename_stat_json="filtered/filterStats.json"
      String dollar="$"
+     String quote="\""
      runtime {
             docker: container
             memory: "120 GiB"
@@ -49,13 +50,25 @@ task rqcfilter {
             database: database
      }
 
-     command {
+     command<<<
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
         rqcfilter2.sh -Xmx105g threads=${dollar}(grep "model name" /proc/cpuinfo | wc -l) jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
-        perl -ne 'chomp;  s/(.*)=/"$1":/; push @a,$_ if($_);  END{print "{",join(",",@a),"}"; }' ${filename_stat} > ${filename_stat_json}
-     }
+
+        python <<CODE
+        import json
+        f = open("${filename_stat}",'r')
+        d = dict()
+        for line in f:
+            if not line.rstrip():continue
+            key,value=line.rstrip().split('=')
+            d[key]=float(value) if 'Ratio' in key else int(value)
+
+        with open("${filename_stat_json}", 'w') as outfile:
+            json.dump(d, outfile)
+        CODE
+     >>>
      output {
             File stdout = filename_outlog
             File stderr = filename_errlog
