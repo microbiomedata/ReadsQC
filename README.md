@@ -34,6 +34,8 @@ Description of the files:
 1. database path, 
 2. fastq (illumina paired-end interleaved fastq), 
 3. output path
+4. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
+5. threads (optional) ex: "jgi_rqcfilter.threads": "16"
 
 ```
 {
