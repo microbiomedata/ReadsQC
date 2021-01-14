@@ -11,4 +11,4 @@
 #SBATCH --account=m3408
 #SBATCH --job-name=rqc_1393
 
-java -Dconfig.file=shifter.conf -jar /global/common/software/m3408/cromwell-45.jar run -o options.json -m metadata_out.json -i input.json rqcfilter.wdl
+java -Dconfig.file=shifter.conf -jar /global/common/software/m3408/cromwell-45.jar run -m metadata_out.json -i input.json rqcfilter.wdl
