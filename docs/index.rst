@@ -50,7 +50,7 @@ Test datasets
 -------------
 
 Zymobiomics mock-community DNA control `(SRR7877884) <https://www.ebi.ac.uk/ena/browser/view/SRR7877884>`_
-
+`10% subsampling SRR7877884-int-0.1.fastq.gz <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884-int-0.1.fastq.gz>`_ 
 
 Details
 -------
@@ -70,7 +70,9 @@ Inputs
             "/path/to/SRR7877884.fastq.gz", 
             "/path/to/Second.fastq.gz", 
         ], 
-        "jgi_rqcfilter.outdir": "/path/to/rqcfiltered"
+        "jgi_rqcfilter.outdir": "/path/to/rqcfiltered",
+        "jgi_rqcfilter.memory": "35G",
+        "jgi_rqcfilter.threads": "16"
     }
 
 

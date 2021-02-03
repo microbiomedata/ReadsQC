@@ -45,7 +45,9 @@ Description of the files:
         "/global/cfs/cdirs/m3408/ficus/8434.1.102069.ACAGTG.fastq.gz", 
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
     ], 
-    "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered"
+    "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered",
+    "jgi_rqcfilter.memory": "35G",
+    "jgi_rqcfilter.threads": "16"
 }
 ```
 
