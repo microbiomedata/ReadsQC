@@ -36,7 +36,7 @@ workflow jgi_rqcfilter {
     meta {
         author: "Chienchi Lo, B10, LANL"
         email: "chienchi@lanl.gov"
-        version: "1.0.0"
+        version: "1.0.1"
     }
 }
 
@@ -94,10 +94,12 @@ task make_output{
 			for i in ${sep=' ' rqcfilter_output}
 			do
 				rqcfilter_path=`dirname $i`
-				prefix=$(basename $rqcfilter_path/*.anqdpht.fastq.gz .anqdpht.fastq.gz)
+				filename=$(basename $rqcfilter_path/*.anqdpht*)
+				prefix=${filename%.anqdpht*}
  				mkdir -p ${outdir}/$prefix
-				mv -f $rqcfilter_path/* ${outdir}/$prefix
-				echo ${outdir}/$prefix/$prefix.anqdpht.fastq.gz
+				cp -f $rqcfilter_path/* ${outdir}/$prefix/
+				rm -f $rqcfilter_path/*
+				echo ${outdir}/$prefix/$filename
 			done
  			chmod 764 -R ${outdir}
  	}
