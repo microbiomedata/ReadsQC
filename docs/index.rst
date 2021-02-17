@@ -21,7 +21,7 @@ Docker image is available in DockerHub: https://hub.docker.com/r/microbiomedata/
 Requirements for Execution 
 --------------------------
 
-(recommendations are in bold) 
+(recommendations are in **bold**) 
 
 - WDL-capable Workflow Execution Tool (**Cromwell**)
 - Container Runtime that can load Docker images (**Docker v2.1.0.3 or higher**) 
@@ -161,7 +161,7 @@ synth2.fq.gz                          detected synthetic molecule (short contami
 Version History
 ---------------
 
-1.0.1 (release date 02/16/2021; previous versions: 1.0.0)
+1.0.1 (release date **02/16/2021**; previous versions: 1.0.0)
 
 
 Point of contact
