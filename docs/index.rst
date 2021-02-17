@@ -36,14 +36,17 @@ Hardware Requirements
 Workflow Dependencies
 ---------------------
 
-- Third party software (This is included in the Docker image.)  
-    - `BBTools v38.90 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+Third party software (This is included in the Docker image.)  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Requisite database:
+- `BBTools v38.90 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
-    The RQCFilterData Database must be downloaded and installed. This is a 106 GB tar file which includes reference datasets of artifacts, adapters, contaminants, the phiX genome, and some host genomes.  The following commands will download the database: 
+Requisite database
+~~~~~~~~~~~~~~~~~~
 
-.. code-block:: bash
+The RQCFilterData Database must be downloaded and installed. This is a 106 GB tar file which includes reference datasets of artifacts, adapters, contaminants, the phiX genome, and some host genomes.  
+
+The following commands will download the database:: 
 
     mkdir refdata
     wget http://portal.nersc.gov/dna/microbial/assembly/bushnell/RQCFilterData.tar
@@ -161,7 +164,7 @@ synth2.fq.gz                          detected synthetic molecule (short contami
 Version History
 ---------------
 
-1.0.1 (release date **02/16/2021**; previous versions: 1.0.0)
+- 1.0.1 (release date **02/16/2021**; previous versions: 1.0.0)
 
 
 Point of contact
