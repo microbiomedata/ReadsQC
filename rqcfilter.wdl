@@ -96,7 +96,7 @@ task make_output{
 			do
 				rqcfilter_path=`dirname $i`
 				f=${dollar}(basename $rqcfilter_path/*.anqdpht*)
-				prefix=${dollar}{f%.*}
+				prefix=${dollar}{f%.anqdpht*}
 				mkdir -p ${outdir}/$prefix
 				cp -f $rqcfilter_path/* ${outdir}/$prefix/
 				rm -f $rqcfilter_path/*
