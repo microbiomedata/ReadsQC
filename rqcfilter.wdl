@@ -89,20 +89,21 @@ task rqcfilter {
 task make_output{
  	String outdir
 	Array[String] rqcfilter_output
+	String dollar ="$"
  
- 	command{
+ 	command<<<
 			for i in ${sep=' ' rqcfilter_output}
 			do
 				rqcfilter_path=`dirname $i`
-				filename=$(basename $rqcfilter_path/*.anqdpht*)
-				prefix=${filename%.anqdpht*}
- 				mkdir -p ${outdir}/$prefix
+				f=${dollar}(basename $rqcfilter_path/*.anqdpht*)
+				prefix=${dollar}{f%.*}
+				mkdir -p ${outdir}/$prefix
 				cp -f $rqcfilter_path/* ${outdir}/$prefix/
 				rm -f $rqcfilter_path/*
 				echo ${outdir}/$prefix/$filename
 			done
  			chmod 764 -R ${outdir}
- 	}
+ 	>>>
 	runtime {
             mem: "1 GiB"
             cpu:  1
