@@ -1,4 +1,4 @@
-Reads QC Workflow (v1.0.1)
+Reads QC Workflow (v1.0.2)
 =============================
 
 .. image:: rqc_workflow.png
@@ -56,7 +56,9 @@ The following commands will download the database::
 Sample dataset(s)
 -----------------
 
-Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ebi.ac.uk/ena/browser/view/SRR7877884>`_); the original gzipped dataset is ~4 GB. 
+- small dataset: `Ecoli 10x <https://portal.nersc.gov/cfs/m3408/test_data/ReadsQC_small_test_data.tgz>`_
+
+- large dataset: Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ebi.ac.uk/ena/browser/view/SRR7877884>`_); the original gzipped dataset is ~4 GB. 
 
 
 .. note::
@@ -164,7 +166,7 @@ synth2.fq.gz                          detected synthetic molecule (short contami
 Version History
 ---------------
 
-- 1.0.1 (release date **02/16/2021**; previous versions: 1.0.0)
+- 1.0.2 (release date **04/09/2021**; previous versions: 1.0.1)
 
 
 Point of contact
