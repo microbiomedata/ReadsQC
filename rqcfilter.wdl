@@ -36,7 +36,7 @@ workflow jgi_rqcfilter {
     meta {
         author: "Chienchi Lo, B10, LANL"
         email: "chienchi@lanl.gov"
-        version: "1.0.1"
+        version: "1.0.2"
     }
 }
 
@@ -100,7 +100,7 @@ task make_output{
 				mkdir -p ${outdir}/$prefix
 				cp -f $rqcfilter_path/* ${outdir}/$prefix/
 				rm -f $rqcfilter_path/*
-				echo ${outdir}/$prefix/$filename
+				echo ${outdir}/$prefix/$f
 			done
  			chmod 764 -R ${outdir}
  	>>>
