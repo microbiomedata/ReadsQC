@@ -56,9 +56,9 @@ The following commands will download the database::
 Sample dataset(s)
 -----------------
 
-- small dataset: `Ecoli 10x <https://portal.nersc.gov/cfs/m3408/test_data/ReadsQC_small_test_data.tgz>`_
+- small dataset: `Ecoli 10x <https://portal.nersc.gov/cfs/m3408/test_data/ReadsQC_small_test_data.tgz>`_ . You can find input/output in the downloaded tar gz file.
 
-- large dataset: Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ebi.ac.uk/ena/browser/view/SRR7877884>`_); the original gzipped dataset is ~4 GB. 
+- large dataset: Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ebi.ac.uk/ena/browser/view/SRR7877884>`_); the `original gzipped dataset <https://portal.nersc.gov/cfs/m3408/test_data/ReadsQC_large_test_data.tgz>`_ is ~5.7 GB.  You can find input/output in the downloaded tar gz file.
 
 
 .. note::
@@ -108,20 +108,25 @@ Output
 
 A directory named with the prefix of the FASTQ input file will be created and multiple output files are generated; the main QC FASTQ output is named prefix.anqdpht.fastq.gz. Using the dataset above as an example, the main output would be named SRR7877884-int-0.1.anqdpht.fastq.gz. Other files include statistics on the quality of the data; what was trimmed, detected, and filtered in the data; a status log, and a shell script documenting the steps implemented so the workflow can be reproduced.
 
-Part of an example output JSON file is shown below:
+An example output JSON file (filterStats.json) is shown below:
    
-.. code-block:: bash    
+.. code-block:: JSON 
     
-    SRR7877884-int-0.1
-    |-- SRR7877884-int-0.1.anqdpht.fastq.gz
-    |-- filterStats.txt
-    |-- filterStats.json
-    |-- filterStats2.txt
-    |-- adaptersDetected.fa
-    |-- reproduce.sh
-    |-- spikein.fq.gz
-    |-- status.log
-    |-- ...
+	{
+	  "inputReads": 331126,
+	  "kfilteredBases": 138732,
+	  "qfilteredReads": 0,
+	  "ktrimmedReads": 478,
+	  "outputBases": 1680724,
+	  "ktrimmedBases": 25248,
+	  "kfilteredReads": 926,
+	  "qtrimmedBases": 0,
+	  "outputReads": 11212,
+	  "gcPolymerRatio": 0.182857,
+	  "inputBases": 50000026,
+	  "qtrimmedReads": 0,
+	  "qfilteredBases": 0
+	}
 
 
 Below is an example of all the output directory files with descriptions to the right.
