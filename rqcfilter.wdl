@@ -86,6 +86,7 @@ task rqcfilter {
             File stderr = filename_errlog
             File stat = filename_stat
             File stat2 = filename_stat2
+            File json_out = filename_stat_json
      }
 }
 
