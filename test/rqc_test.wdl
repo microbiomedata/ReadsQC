@@ -35,8 +35,8 @@ task prepare {
    String ref_json
    String url
    command{
-       wget -o "input.fastq.gz" ${url}
-       wget -o "ref_json.json" ${ref_json}
+       wget -O "input.fastq.gz" ${url}
+       wget -O "ref_json.json" ${ref_json}
    }
    output{
       File fastq = "input.fastq.gz"
