@@ -1,11 +1,9 @@
-
 import "rqcfilter.wdl" as rqc
-
-workflow test_small {
+workflow rqctest {
   String  container="microbiomedata/bbtools:38.90"
   String  validate_container="microbiomedata/comparejson"
-  String  database="/refdata"
-  Boolean chastityfilter_flag=false
+  String  database="/vol_b/nmdc_workflows/data/test_refdata"
+  Boolean flag=false
   String? memory="60G"
   String? threads="8"
   String  url="https://portal.nersc.gov/cfs/m3408/test_data/Ecoli_10x-int.fastq.gz"
@@ -20,13 +18,13 @@ workflow test_small {
     input: input_file=prepare.fastq,
            database=database,
            container=container,
-           chastityfilter_flag=chastityfilter_flag,
+           chastityfilter_flag=flag,
            memory=memory,
            threads=threads
   }
   call validate {
     input: container=validate_container,
-           ref_json=ref_json,
+           refjson=prepare.refjson,
            user_json=filter.json_out
   }
 }
@@ -40,7 +38,7 @@ task prepare {
    }
    output{
       File fastq = "input.fastq.gz"
-      File ref_json = "ref_json.json"
+      File refjson = "ref_json.json"
    }
    runtime {
      memory: "1 GiB"
@@ -51,14 +49,13 @@ task prepare {
 }
 task validate {
    String container
-   File ref_json
+   File refjson
    File user_json
-
    command {
-       compare_json.py -i ${ref_jason} -f ${user_json}  
+       compare_json.py -i ${refjson} -f ${user_json}  
    }
    output {
-       String result = read_lines(stdout())
+       Array[String] result = read_lines(stdout())
    }
    runtime {
      memory: "1 GiB"
