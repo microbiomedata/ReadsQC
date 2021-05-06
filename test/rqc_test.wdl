@@ -24,7 +24,7 @@ workflow rqctest {
   }
   call validate {
     input: container=validate_container,
-           refjson=ref_json,
+           refjson=prepare.refjson,
            user_json=filter.json_out
   }
 }
