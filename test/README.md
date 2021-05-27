@@ -7,7 +7,7 @@ The ReadsQC validation workflow is meant to compare test data in json format ava
 
 ## Input files for rqc_test.wdl
 1. ReadsQC workflow contianer(provided),  
-2. Comparejson container(provided, 
+2. Comparejson container(provided), 
 3. database (path to database provided by user),
 4. memory (optional, can be changed by user),
 5. threads (optional, can be changed by user),
