@@ -3,6 +3,7 @@ workflow jgi_rqcfilter {
     String? outdir
     String bbtools_container="microbiomedata/bbtools:38.90"
     String database="/refdata"
+    Boolean chastityfilter=true
     String? memory
     String? threads
 
@@ -11,6 +12,7 @@ workflow jgi_rqcfilter {
              input:  input_file=file,
                      container=bbtools_container,
                      database=database,
+		     chastityfilter_flag=chastityfilter,
                      memory=memory,
                      threads=threads
         }
@@ -54,6 +56,7 @@ task rqcfilter {
      File input_file
      String container
      String database
+     Boolean chastityfilter_flag=true
      String? memory
      String? threads
      String prefix=sub(basename(input_file), ".fastq.gz", "")
@@ -64,6 +67,8 @@ task rqcfilter {
      String filename_stat_json="filtered/filterStats.json"
      String system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
      String jvm_threads=select_first([threads,system_cpu])
+     String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+
      runtime {
             docker: container
             memory: "70 GB"
@@ -74,7 +79,8 @@ task rqcfilter {
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-        rqcfilter2.sh -Xmx${default="60G" memory} threads=${jvm_threads} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/refdata/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+        rqcfilter2.sh -Xmx${default="60G" memory} threads=${jvm_threads} ${chastityfilter} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+
         python <<CODE
         import json
         f = open("${filename_stat}",'r')
@@ -94,6 +100,7 @@ task rqcfilter {
             File stat = filename_stat
             File stat2 = filename_stat2
             File filtered = glob("filtered/*fastq.gz")[0]
+            File json_out = filename_stat_json
      }
 }
 
