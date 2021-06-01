@@ -16,13 +16,23 @@ workflow jgi_rqcfilter {
         }
     }
 
-    # rqcfilter.stat implicit as Array because of scatter 
-    call make_output {
-       	input: outdir= outdir, rqcfilter_output=rqcfilter.stat
+    # rqcfilter.stat implicit as Array because of scatter
+    # Optional staging to an output directory
+    if (defined(outdir)){
+        call make_output {
+           	input: outdir=outdir,
+                       filtered=rqcfilter.filtered,
+                       stats=rqcfilter.stat,
+                       stats2=rqcfilter.stat2,
+                       container=bbtools_container
+        }
     }
 
     output{
-        Array[File] clean_fastq_files = make_output.fastq_files
+        Array[File] filtered = rqcfilter.filtered
+        Array[File] stats = rqcfilter.stat
+        Array[File] stats2 = rqcfilter.stat2
+        Array[File]? clean_fastq_files = make_output.fastq_files
     }
     
     parameter_meta {
@@ -46,6 +56,7 @@ task rqcfilter {
      String database
      String? memory
      String? threads
+     String prefix=sub(basename(input_file), ".fastq.gz", "")
      String filename_outlog="stdout.log"
      String filename_errlog="stderr.log"
      String filename_stat="filtered/filterStats.txt"
@@ -55,7 +66,7 @@ task rqcfilter {
      String jvm_threads=select_first([threads,system_cpu])
      runtime {
             docker: container
-            mem: memory
+            memory: "70 GB"
             database: database
      }
 
@@ -63,8 +74,7 @@ task rqcfilter {
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-        rqcfilter2.sh -Xmx${default="105G" memory} threads=${jvm_threads} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/databases/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
-
+        rqcfilter2.sh -Xmx${default="60G" memory} threads=${jvm_threads} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=/refdata/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
         python <<CODE
         import json
         f = open("${filename_stat}",'r')
@@ -83,33 +93,40 @@ task rqcfilter {
             File stderr = filename_errlog
             File stat = filename_stat
             File stat2 = filename_stat2
+            File filtered = glob("filtered/*fastq.gz")[0]
      }
 }
 
 task make_output{
  	String outdir
-	Array[String] rqcfilter_output
-	String dollar ="$"
+	Array[File] stats
+	Array[File] stats2
+	Array[File] filtered
+	String container
  
  	command<<<
-			for i in ${sep=' ' rqcfilter_output}
+			mkdir -p ${outdir}
+			for i in ${sep=' ' stats}
 			do
-				rqcfilter_path=`dirname $i`
-				f=${dollar}(basename $rqcfilter_path/*.anqdpht*)
-				prefix=${dollar}{f%.anqdpht*}
-				mkdir -p ${outdir}/$prefix
-				cp -f $rqcfilter_path/* ${outdir}/$prefix/
-				rm -f $rqcfilter_path/*
-				echo ${outdir}/$prefix/$f
+				cp -f $i ${outdir}
+			done
+			for i in ${sep=' ' stats2}
+			do
+				cp -f $i ${outdir}
+			done
+			for i in ${sep=' ' filtered}
+			do
+				cp -f $i ${outdir}
 			done
  			chmod 764 -R ${outdir}
  	>>>
 	runtime {
-            mem: "1 GiB"
+            docker: container
+            memory: "1 GiB"
             cpu:  1
         }
 	output{
-		Array[String] fastq_files = read_lines(stdout())
+		Array[String] fastq_files = glob("${outdir}/*.fastq*")
 	}
 }
 
