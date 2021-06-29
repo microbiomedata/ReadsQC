@@ -141,8 +141,8 @@ task make_output{
 			mkdir -p ${outdir}
 			for i in ${sep=' ' filtered}
 			do
-				f=${dollar}(basename $i})
-				dir=${dollar}(dirname $i})
+				f=${dollar}(basename $i)
+				dir=${dollar}(dirname $i)
 				prefix=${dollar}{f%.anqdpht*}
 				mkdir -p ${outdir}/$prefix
 				cp -f $dir/../filtered/filterStats.txt ${outdir}/$prefix
