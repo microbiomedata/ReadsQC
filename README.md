@@ -34,8 +34,11 @@ Description of the files:
 1. database path, 
 2. fastq (illumina paired-end interleaved fastq), 
 3. output path
-4. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
-5. threads (optional) ex: "jgi_rqcfilter.threads": "16"
+4. input_interleaved (boolean)
+5. forwards reads fastq file (when input_interleaved is false)
+6. reverse reads fastq file (when input_interleaved is false)
+7. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
+8. threads (optional) ex: "jgi_rqcfilter.threads": "16"
 
 ```
 {
@@ -46,6 +49,9 @@ Description of the files:
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
     ], 
     "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered",
+    "jgi_rqcfilter.input_interleaved": true,
+    "jgi_rqcfilter.input_fq1":[],
+    "jgi_rqcfilter.input_fq2":[],
     "jgi_rqcfilter.memory": "35G",
     "jgi_rqcfilter.threads": "16"
 }

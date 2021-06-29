@@ -79,8 +79,11 @@ A JSON file containing the following information:
 1.	the path to the database
 2.	the path to the interleaved fastq file (input data) 
 3.	the path to the output directory
-4.	(optional) parameters for memory 
-5.	(optional) number of threads requested
+4.      input_interleaved (boolean)
+5.      forwards reads fastq file (when input_interleaved is false) 
+6.      reverse reads fastq file (when input_interleaved is false)     
+7.	(optional) parameters for memory 
+8.	(optional) number of threads requested
 
 
 An example input JSON file is shown below:
@@ -92,6 +95,9 @@ An example input JSON file is shown below:
         "jgi_rqcfilter.input_files": [
             "/path/to/SRR7877884-int-0.1.fastq.gz "
         ],
+        "jgi_rqcfilter.input_interleaved": true,
+        "jgi_rqcfilter.input_fq1":[],
+        "jgi_rqcfilter.input_fq2":[],
         "jgi_rqcfilter.outdir": "/path/to/rqcfiltered",
         "jgi_rqcfilter.memory": "35G",
         "jgi_rqcfilter.threads": "16"
