@@ -7,10 +7,10 @@ workflow jgi_rqcfilter {
     String? memory
     String? threads
     Boolean input_interleaved = true
+    Array[File] input_fq1
+    Array[File] input_fq2
     
     if (!input_interleaved) {
-        Array[File] input_fq1
-        Array[File] input_fq2
         ## the zip() function generates an array of pairs, use .left and .right to access
         scatter(file in zip(input_fq1,input_fq2)){
              call interleave_reads {
