@@ -10,7 +10,7 @@ workflow jgi_rqcfilter {
     String? activity_id = "${proj}"  # "nmdc:xxxxxxxxxxxxxxx"
     String resource = "NERSC - Cori"
     String url_root = "https://data.microbiomedata.org/data/"
-    String git_url = "https://github.com/microbiomedata/ReadsQC/releases/tag/1.0.3"
+    String git_url = "https://github.com/microbiomedata/ReadsQC/releases/tag/1.0.4"
 
     
     Boolean input_interleaved = true
@@ -114,7 +114,7 @@ workflow jgi_rqcfilter {
     meta {
         author: "Chienchi Lo, B10, LANL"
         email: "chienchi@lanl.gov"
-        version: "1.0.2"
+        version: "1.0.4"
     }
 }
 
@@ -242,13 +242,13 @@ task make_output{
         do
             f=${dollar}(basename $i)
             prefix=${dollar}{f%_activity.json*}
-            cp -f $i ${outdir}/$prefix
+            cp -f $i ${outdir}/$prefix/activity.json
         done
         for i in ${sep=' ' object_json}
         do
             f=${dollar}(basename $i)
             prefix=${dollar}{f%_data_objects.json*}
-            cp -f $i ${outdir}/$prefix
+            cp -f $i ${outdir}/$prefix/data_objects.json
         done
         chmod 755 -R ${outdir}
     >>>
