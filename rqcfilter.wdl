@@ -42,7 +42,7 @@ workflow jgi_rqcfilter {
                     resource = "${resource}",
                     url_base = "${url_root}",
                     git_url = "${git_url}",
-                    read = interleave_reads.out_fastq,
+                    read = [file.left,file.right],
                     filtered = rqcPE.filtered,
                     filtered_stats = rqcPE.stat,
                     filtered_stats_json = rqcPE.json_out,
@@ -68,7 +68,7 @@ workflow jgi_rqcfilter {
                     resource = "${resource}",
                     url_base = "${url_root}",
                     git_url = "${git_url}",
-                    read = file,
+                    read = [file],
                     filtered = rqcInt.filtered,
                     filtered_stats = rqcInt.stat,
                     filtered_stats_json = rqcInt.json_out,
@@ -182,7 +182,7 @@ task generate_objects{
     String resource
     String url_base
     String git_url
-    File read
+    Array[File] read
     File filtered
     File filtered_stats
     File filtered_stats_json
@@ -198,7 +198,7 @@ task generate_objects{
             --start ${start} --end $end \
             --resource '${resource}' --url ${url_base} --giturl ${git_url} \
             --extra ${filtered_stats_json} \
-            --inputs ${read} \
+            --inputs ${sep=' ' read} \
             --outputs \
             ${filtered} 'Filtered Reads' \
             ${filtered_stats} 'Filtered Stats'
