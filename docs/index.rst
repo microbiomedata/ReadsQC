@@ -11,7 +11,7 @@ Workflow Overview
 
 This workflow utilizes the program “rqcfilter2” from BBTools to perform quality control on raw Illumina reads. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using BBDuk), and performs human/cat/dog/mouse/microbe removal (using BBMap).
 
-The following parameters are used for "rqcfilter2" in this the workflow
+The following parameters are used for "rqcfilter2" in this workflow
  - qtrim=r     :  Quality-trim from right ends before mapping.
  - trimq=0     :  Trim quality threshold.
  - maxns=3     :  Reads with more Ns than this will be discarded.
