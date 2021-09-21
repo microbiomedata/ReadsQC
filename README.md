@@ -2,7 +2,7 @@
 
 ## Summary
 
-This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:44) which implements them as a pipeline. 
+This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:92) which implements them as a pipeline. 
 
 ## Required Database
 
@@ -27,7 +27,7 @@ Description of the files:
 
 ## The Docker image and Dockerfile can be found here
 
-[microbiomedata/bbtools:38.44](https://hub.docker.com/r/microbiomedata/bbtools)
+[microbiomedata/bbtools:38.92](https://hub.docker.com/r/microbiomedata/bbtools)
 
 ## Input files
 
