@@ -152,8 +152,9 @@ task rqcfilter {
 
         python <<CODE
         import json
+        from collections import OrderedDict
         f = open("${filename_stat}",'r')
-        d = dict()
+        d = OrderedDict()
         for line in f:
             if not line.rstrip():continue
             key,value=line.rstrip().split('=')
