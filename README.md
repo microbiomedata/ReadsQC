@@ -2,7 +2,7 @@
 
 ## Summary
 
-This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:92) which implements them as a pipeline. 
+This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:94) which implements them as a pipeline. 
 
 ## Required Database
 
