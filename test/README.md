@@ -15,7 +15,7 @@ The ReadsQC validation workflow is meant to compare test data in json format ava
 7. url for NMDC test json (provided for small test data)
 ```
 workflow rqctest {
-  String  container="microbiomedata/bbtools:38.90"
+  String  container="microbiomedata/bbtools:38.94"
   String  validate_container="microbiomedata/comparejson"
   String  database="/vol_b/nmdc_workflows/data/test_refdata"
   Boolean flag=false
