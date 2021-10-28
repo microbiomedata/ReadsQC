@@ -7,7 +7,7 @@ workflow jgi_rqcfilter {
     String? memory
     String? threads
     String? proj = "ReadsQC" 
-    String? activity_id = "${proj}"  # "nmdc:xxxxxxxxxxxxxxx"
+    String? informed_by = "${proj}"  # "nmdc:xxxxxxxxxxxxxxx"
     String resource = "NERSC - Cori"
     String url_root = "https://data.microbiomedata.org/data/"
     String git_url = "https://github.com/microbiomedata/ReadsQC/releases/tag/1.0.4"
@@ -36,9 +36,10 @@ workflow jgi_rqcfilter {
     
              }
              call generate_objects as goPE {
-                input: container="microbiomedata/workflowmeta:1.0.0",
+                input: container="microbiomedata/workflowmeta:1.0.5.1",
+                    proj = proj,
                     start = rqcPE.start,
-                    activity_id = "${activity_id}",
+                    informed_by = "${informed_by}",
                     resource = "${resource}",
                     url_base = "${url_root}",
                     git_url = "${git_url}",
@@ -62,9 +63,10 @@ workflow jgi_rqcfilter {
                      threads=threads
             }
             call generate_objects as goInt {
-                input: container="microbiomedata/workflowmeta:1.0.0",
+                input: container="microbiomedata/workflowmeta:1.0.5.1",
+                    proj = proj,
                     start = rqcInt.start,
-                    activity_id = "${activity_id}",
+                    informed_by = "${informed_by}",
                     resource = "${resource}",
                     url_base = "${url_root}",
                     git_url = "${git_url}",
@@ -178,8 +180,9 @@ task rqcfilter {
 
 task generate_objects{
     String container
+    String proj
     String start
-    String activity_id
+    String informed_by
     String resource
     String url_base
     String git_url
@@ -195,9 +198,10 @@ task generate_objects{
     command{
         set -e
         end=`date --iso-8601=seconds`
-        /scripts/generate_objects.py --type "qa" --id ${activity_id} \
+        /scripts/generate_objects.py --type "nmdc:ReadQCAnalysisActivity" --id ${informed_by} \
+            --name "Read QC Activity for ${proj}" --part ${proj} \
             --start ${start} --end $end \
-            --resource '${resource}' --url ${url_base} --giturl ${git_url} \
+            --resource '${resource}' --url ${url_base}${proj}/qa/  --giturl ${git_url} \
             --extra ${filtered_stats_json} \
             --inputs ${sep=' ' read} \
             --outputs \
