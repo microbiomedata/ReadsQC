@@ -1,7 +1,7 @@
 workflow jgi_rqcfilter {
     Array[File] input_files
     String? outdir
-    String bbtools_container="microbiomedata/bbtools:38.94"
+    String bbtools_container="microbiomedata/bbtools:38.96"
     String database="/refdata"
     Boolean chastityfilter=false
     String? memory
