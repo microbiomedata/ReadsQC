@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 LABEL base.image="ubuntu:20.04"
 LABEL dockerfile.version="1"
 LABEL software="BBTools"
-LABEL software.version="38.94"
+LABEL software.version="38.96"
 LABEL description="A set of tools labeled as \"Bestus Bioinformaticus\""
 LABEL website="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/"
 LABEL license="https://jgi.doe.gov/disclaimer/"
@@ -26,9 +26,9 @@ RUN apt-get update && apt-get install -y build-essential file python \
 # openjdk-13-jre \
 RUN /bin/sh -c set -eux; curl -fL -o /openjdk.tgz "$JAVA_URL"; 	echo "$JAVA_SHA256 */openjdk.tgz" | sha256sum -c -; mkdir -p "$JAVA_HOME"; tar --extract --file /openjdk.tgz --directory "$JAVA_HOME" --strip-components 1; rm /openjdk.tgz; ln -sfT "$JAVA_HOME" /usr/java/default; ln -sfT "$JAVA_HOME" /usr/java/latest; for bin in "$JAVA_HOME/bin/"*; do 	base="$(basename "$bin")"; [ ! -e "/usr/bin/$base" ]; 	update-alternatives --install "/usr/bin/$base" "$base" "$bin" 20000; 	done; java -Xshare:dump; java --version; javac --version
 
-RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_38.94.tar.gz && \
-  tar -xzf BBMap_38.94.tar.gz && \
-  rm BBMap_38.94.tar.gz
+RUN wget https://sourceforge.net/projects/bbmap/files/BBMap_38.96.tar.gz && \
+  tar -xzf BBMap_38.96.tar.gz && \
+  rm BBMap_38.96.tar.gz
 
 ENV PATH="${PATH}:/bbmap"\
  LC_ALL=C
