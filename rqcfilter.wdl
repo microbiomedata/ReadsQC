@@ -1,7 +1,7 @@
 workflow jgi_rqcfilter {
     Array[File] input_files
     String? outdir
-    String bbtools_container="microbiomedata/bbtools:38.94"
+    String bbtools_container="microbiomedata/bbtools:38.96"
     String database="/refdata"
     Boolean chastityfilter=true
     String? memory
@@ -71,7 +71,7 @@ task rqcfilter {
      runtime {
             docker: container
             memory: "70 GB"
-            cpu:  8
+            cpu:  16
             database: database
             runtime_minutes: ceil(size(input_file, "GB")*60)
      }
@@ -80,7 +80,7 @@ task rqcfilter {
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-        rqcfilter2.sh -Xmx${default="60G" memory} threads=${jvm_threads} ${chastityfilter} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=${database}/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+        rqcfilter2.sh -Xmx${default="60G" memory} -da threads=${jvm_threads} ${chastityfilter} jni=t in=${input_file} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=${database}/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
 
         python <<CODE
         import json
