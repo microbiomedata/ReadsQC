@@ -2,7 +2,7 @@
 
 ## Summary
 
-This workflow is replicate the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:44) which implements them as a pipeline. 
+This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads and use the program “rqcfilter2” from BBTools(38:96) which implements them as a pipeline. 
 
 ## Required Database
 
@@ -27,15 +27,18 @@ Description of the files:
 
 ## The Docker image and Dockerfile can be found here
 
-[microbiomedata/bbtools:38.44](https://hub.docker.com/r/microbiomedata/bbtools)
+[microbiomedata/bbtools:38.92](https://hub.docker.com/r/microbiomedata/bbtools)
 
 ## Input files
 
 1. database path, 
 2. fastq (illumina paired-end interleaved fastq), 
 3. output path
-4. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
-5. threads (optional) ex: "jgi_rqcfilter.threads": "16"
+4. input_interleaved (boolean)
+5. forwards reads fastq file (when input_interleaved is false)
+6. reverse reads fastq file (when input_interleaved is false)
+7. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
+8. threads (optional) ex: "jgi_rqcfilter.threads": "16"
 
 ```
 {
@@ -46,6 +49,9 @@ Description of the files:
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
     ], 
     "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered",
+    "jgi_rqcfilter.input_interleaved": true,
+    "jgi_rqcfilter.input_fq1":[],
+    "jgi_rqcfilter.input_fq2":[],
     "jgi_rqcfilter.memory": "35G",
     "jgi_rqcfilter.threads": "16"
 }

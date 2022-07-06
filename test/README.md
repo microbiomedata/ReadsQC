@@ -15,7 +15,7 @@ The ReadsQC validation workflow is meant to compare test data in json format ava
 7. url for NMDC test json (provided for small test data)
 ```
 workflow rqctest {
-  String  container="microbiomedata/bbtools:38.90"
+  String  container="microbiomedata/bbtools:38.96"
   String  validate_container="microbiomedata/comparejson"
   String  database="/vol_b/nmdc_workflows/data/test_refdata"
   Boolean flag=false
@@ -25,7 +25,7 @@ workflow rqctest {
   String  ref_json="https://raw.githubusercontent.com/microbiomedata/ReadsQC/master/test/small_test_filterStats.json"
 ```
 ## Docker contianers can be found here:
-Bbtools: [microbiomedata/bbtools:38.44](https://hub.docker.com/r/microbiomedata/bbtools)
+Bbtools: [microbiomedata/bbtools:38.96](https://hub.docker.com/r/microbiomedata/bbtools)
 Comparjson: [microbiomedata/comparejson](https://hub.docker.com/r/microbiomedata/comparejson)
 
 ## Running Testing Validation Workflow

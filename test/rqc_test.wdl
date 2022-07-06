@@ -1,6 +1,6 @@
 import "rqcfilter.wdl" as rqc
 workflow rqctest {
-  String  container="microbiomedata/bbtools:38.90"
+  String  container="microbiomedata/bbtools:38.96"
   String  validate_container="microbiomedata/comparejson"
   String  database="/vol_b/nmdc_workflows/data/test_refdata"
   Boolean flag=false

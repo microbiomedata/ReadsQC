@@ -11,6 +11,28 @@ Workflow Overview
 
 This workflow utilizes the program “rqcfilter2” from BBTools to perform quality control on raw Illumina reads. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using BBDuk), and performs human/cat/dog/mouse/microbe removal (using BBMap).
 
+The following parameters are used for "rqcfilter2" in this workflow::
+ - qtrim=r     :  Quality-trim from right ends before mapping.
+ - trimq=0     :  Trim quality threshold.
+ - maxns=3     :  Reads with more Ns than this will be discarded.
+ - maq=3       :  Reads with average quality (before trimming) below this will be discarded.
+ - minlen=51   :  Reads shorter than this after trimming will be discarded.  Pairs will be discarded only if both are shorter.
+ - mlf=0.33    :  Reads shorter than this fraction of original length after trimming will be discarded.
+ - phix=true   :  Remove reads containing phiX kmers.
+ - khist=true  :  Generate a kmer-frequency histogram of the output data.
+ - kapa=true   :  Remove and quantify kapa tag
+ - trimpolyg=5 :  Trim reads that start or end with a G polymer at least this long
+ - clumpify=true       :  Run clumpify; all deduplication flags require this.
+ - removehuman=true    :  Remove human reads via mapping.
+ - removedog=true      :  Remove dog reads via mapping.
+ - removecat=true      :  Remove cat reads via mapping.
+ - removemouse=true    :  Remove mouse reads via mapping.
+ - barcodefilter=false :  Disable improper barcodes filter
+ - chastityfilter=false:  Remove illumina reads failing chastity filter.
+ - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
+ - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
+
+ 
 Workflow Availability
 ---------------------
 
@@ -39,7 +61,7 @@ Workflow Dependencies
 Third party software (This is included in the Docker image.)  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `BBTools v38.90 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+- `BBTools v38.96 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
 Requisite database
 ~~~~~~~~~~~~~~~~~~
@@ -79,8 +101,11 @@ A JSON file containing the following information:
 1.	the path to the database
 2.	the path to the interleaved fastq file (input data) 
 3.	the path to the output directory
-4.	(optional) parameters for memory 
-5.	(optional) number of threads requested
+4.      input_interleaved (boolean)
+5.      forwards reads fastq file (when input_interleaved is false) 
+6.      reverse reads fastq file (when input_interleaved is false)     
+7.	(optional) parameters for memory 
+8.	(optional) number of threads requested
 
 
 An example input JSON file is shown below:
@@ -92,6 +117,9 @@ An example input JSON file is shown below:
         "jgi_rqcfilter.input_files": [
             "/path/to/SRR7877884-int-0.1.fastq.gz "
         ],
+        "jgi_rqcfilter.input_interleaved": true,
+        "jgi_rqcfilter.input_fq1":[],
+        "jgi_rqcfilter.input_fq2":[],
         "jgi_rqcfilter.outdir": "/path/to/rqcfiltered",
         "jgi_rqcfilter.memory": "35G",
         "jgi_rqcfilter.threads": "16"

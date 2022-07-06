@@ -10,5 +10,8 @@
         "/global/cfs/cdirs/m3408/ficus/8434.1.102069.ACAGTG.fastq.gz", 
         "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
     ], 
-    "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered"
+    "jgi_rqcfilter.input_fq1":[],
+    "jgi_rqcfilter.input_fq2":[],
+    "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered",
+    "jgi_rqcfilter.input_interleaved": true
 }
