@@ -2,7 +2,7 @@ workflow nmdc_rqcfilter {
     String  container="bfoster1/img-omics:0.1.9"
     String  proj
     String  input_files
-    String  database="/refdata/img/"
+    String  database="/refdata/"
     String  resource
     String  informed_by
     String?  git_url="https://github.com/microbiomedata/mg_annotation/releases/tag/0.1"
