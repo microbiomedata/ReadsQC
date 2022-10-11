@@ -22,7 +22,7 @@ workflow nmdc_rqcfilter {
     }
 
     call finish_rqc {
-        input: container="microbiomedata/workflowmeta:1.1.0",
+        input: container="microbiomedata/workflowmeta:1.1.1",
            proj=proj,
            start=stage.start,
            resource=resource,
@@ -166,6 +166,7 @@ task finish_rqc {
                 ended_at_time=$end \
                 execution_resource=${resource} \
                 git_url=${git_url} \
+                version="b1.0.5" \
              --url ${url_root}${proj}/qa/ \
              --extra stats.json \
              --inputs ${read} \
