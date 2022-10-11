@@ -166,7 +166,7 @@ task finish_rqc {
                 ended_at_time=$end \
                 execution_resource=${resource} \
                 git_url=${git_url} \
-                version="b1.0.5" \
+                version="b1.0.6" \
              --url ${url_root}${proj}/qa/ \
              --extra stats.json \
              --inputs ${read} \
