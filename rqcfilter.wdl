@@ -158,7 +158,7 @@ task finish_rqc {
 
        /scripts/generate_object_json.py \
              --type "nmdc:ReadQCAnalysisActivity" \
-             --set read_QC_analysis_activity_set \
+             --set read_qc_analysis_activity_set \
              --part ${proj} \
              -p "name=Read QC Activity for ${proj}" \
                 was_informed_by=${informed_by} \
