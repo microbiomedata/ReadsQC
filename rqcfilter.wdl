@@ -20,6 +20,11 @@ workflow nmdc_rqcfilter {
             database=database,
             memory="60G"
     }
+    call make_info_file {
+        input: info_file = qc.info_file,
+            container=container,
+            proj=proj
+    }
 
     call finish_rqc {
         input: container="microbiomedata/workflowmeta:1.1.1",
@@ -39,6 +44,7 @@ workflow nmdc_rqcfilter {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File objects = finish_rqc.objects
+        File rqc_info = make_info_file.rqc_info
     }
 }
 
@@ -86,6 +92,7 @@ task rqcfilter {
      String filename_stat="filtered/filterStats.txt"
      String filename_stat2="filtered/filterStats2.txt"
      String filename_stat_json="filtered/filterStats.json"
+     String filename_reproduce="filtered/reproduce.sh"
      String system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
      String jvm_threads=select_first([threads,system_cpu])
      String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
@@ -122,10 +129,33 @@ task rqcfilter {
             File stderr = filename_errlog
             File stat = filename_stat
             File stat2 = filename_stat2
+            File info_file = filename_reproduce
             File filtered = glob("filtered/*fastq.gz")[0]
             File json_out = filename_stat_json
             #String start = read_string("start.txt")
      }
+}
+
+task make_info_file {
+    File info_file
+    String proj
+    String prefix=sub(proj, ":", "_")
+    String container
+    
+    command<<<
+        sed -n 2,5p ${info_file} 2>&1 |  perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > ${prefix}_readsQC.info
+        echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> ${prefix}_readsQC.info
+    >>>
+
+    output {
+        File rqc_info = "${prefix}_readsQC.info"
+    }
+    runtime {
+        memory: "1 GiB"
+        cpu:  1
+        maxRetries: 1
+        docker: container
+    }
 }
 
 task finish_rqc {
