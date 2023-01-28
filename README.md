@@ -33,27 +33,17 @@ Description of the files:
 
 1. database path, 
 2. fastq (illumina paired-end interleaved fastq), 
-3. output path
-4. input_interleaved (boolean)
-5. forwards reads fastq file (when input_interleaved is false)
-6. reverse reads fastq file (when input_interleaved is false)
-7. memory (optional) ex: "jgi_rqcfilter.memory": "35G"
-8. threads (optional) ex: "jgi_rqcfilter.threads": "16"
+3. project name 
+4. resource where run the workflow
+5. informed_by 
 
 ```
 {
-    "jgi_rqcfilter.database": "/global/cfs/projectdirs/m3408/aim2/database", 
-    "jgi_rqcfilter.input_files": [
-        "/global/cfs/cdirs/m3408/ficus/8434.3.102077.AGTTCC.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8434.1.102069.ACAGTG.fastq.gz", 
-        "/global/cfs/cdirs/m3408/ficus/8434.3.102077.ATGTCA.fastq.gz"
-    ], 
-    "jgi_rqcfilter.outdir": "/global/cfs/cdirs/m3408/ficus_rqcfiltered",
-    "jgi_rqcfilter.input_interleaved": true,
-    "jgi_rqcfilter.input_fq1":[],
-    "jgi_rqcfilter.input_fq2":[],
-    "jgi_rqcfilter.memory": "35G",
-    "jgi_rqcfilter.threads": "16"
+    "nmdc_rqcfilter.database": "/global/cfs/projectdirs/m3408/aim2/database", 
+    "nmdc_rqcfilter.input_files": "/global/cfs/cdirs/m3408/ficus/8434.3.102077.AGTTCC.fastq.gz", 
+    "nmdc_rqcfilter.proj":"nmdc:xxxxxxx",
+    "nmdc_rqcfilter.resouce":"NERSC -- perlmutter",
+    "nmdc_rqcfilter.informed_by": "nmdc:xxxxxxxx"
 }
 ```
 
