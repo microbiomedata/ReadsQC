@@ -1,13 +1,7 @@
 workflow nmdc_rqcfilter {
     String  container="bfoster1/img-omics:0.1.9"
-    String  proj
     String  input_files
     String  database="/refdata/"
-    String  resource
-    String  informed_by
-    String?  git_url="https://github.com/microbiomedata/mg_annotation/releases/tag/0.1"
-    String?  url_root="https://data.microbiomedata.org/data/"
-    String  url_base="${url_root}${proj}/qa/"
 
     call stage {
         input: container=container,
@@ -23,12 +17,7 @@ workflow nmdc_rqcfilter {
 
     call finish_rqc {
         input: container="microbiomedata/workflowmeta:1.1.1",
-           proj=proj,
            start=stage.start,
-           resource=resource,
-           url_root=url_root,
-           git_url=git_url,
-           informed_by=informed_by,
            read = stage.read,
            filtered = qc.filtered,
            filtered_stats = qc.stat,
@@ -146,44 +135,14 @@ task finish_rqc {
 
         set -e
         end=`date --iso-8601=seconds`
-        # Generate QA objects
-        ln ${filtered} ${prefix}_filtered.fastq.gz
-        ln ${filtered_stats} ${prefix}_filterStats.txt
-        ln ${filtered_stats2} ${prefix}_filterStats2.txt
 
        # Generate stats but rename some fields untilt the script is
        # fixed.
        /scripts/rqcstats.py ${filtered_stats} > stats.json
-       cp stats.json ${prefix}_qa_stats.json
 
-       /scripts/generate_object_json.py \
-             --type "nmdc:ReadQCAnalysisActivity" \
-             --set read_QC_analysis_activity_set \
-             --part ${proj} \
-             -p "name=Read QC Activity for ${proj}" \
-                was_informed_by=${informed_by} \
-                started_at_time=${start} \
-                ended_at_time=$end \
-                execution_resource=${resource} \
-                git_url=${git_url} \
-                version="b1.0.6" \
-             --url ${url_root}${proj}/qa/ \
-             --extra stats.json \
-             --inputs ${read} \
-             --outputs \
-             ${prefix}_filtered.fastq.gz "Reads QC result fastq (clean data)" "Filtered Sequencing Reads" \
-                                         "Reads QC for ${proj}" \
-             ${prefix}_filterStats.txt "Reads QC summary statistics" "QC Statistics" \
-                                         "Reads QC summary for ${proj}" \
-
-        #TODO:
-        #Add set container & immediately send through validation parser and they pass
     >>>
     output {
-        File filtered_final = "${prefix}_filtered.fastq.gz"
-        File filtered_stats_final = "${prefix}_filterStats.txt"
-        File filtered_stats2_final = "${prefix}_filterStats2.txt"
-        File objects = "objects.json"
+        File stats_json = "stats.json"
     }
 
     runtime {
