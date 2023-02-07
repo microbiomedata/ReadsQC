@@ -5,29 +5,25 @@ workflow nmdc_rqcfilter {
 
     call stage {
         input: container=container,
-            input_file=input_files
+               input_file=input_files
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
         input: input_files=stage.read,
-            threads=16,
-            database=database,
-            memory="60G"
+               threads=16,
+               database=database,
+               memory="60G"
     }
 
     call finish_rqc {
         input: container="microbiomedata/workflowmeta:1.1.1",
-           start=stage.start,
-           read = stage.read,
-           filtered = qc.filtered,
-           filtered_stats = qc.stat,
-           filtered_stats2 = qc.stat2
+               filtered_stats = qc.stat
     }
     output {
-        File filtered_final = finish_rqc.filtered_final
-        File filtered_stats_final = finish_rqc.filtered_stats_final
-        File filtered_stats2_final = finish_rqc.filtered_stats2_final
-        File objects = finish_rqc.objects
+        File filtered_final = qc.filtered
+        File filtered_stats_final = qc.stat
+        File filtered_stats2_final = qc.stat2
+        Object stats = finish_rqc.stats
     }
 }
 
@@ -45,14 +41,11 @@ task stage {
        else
            ln ${input_file} ${target} || cp ${input_file} ${target}
        fi
-       # Capture the start time
-       date --iso-8601=seconds > start.txt
 
    >>>
 
    output{
       File read = "${target}"
-      String start = read_string("start.txt")
    }
    runtime {
      memory: "1 GiB"
@@ -113,28 +106,17 @@ task rqcfilter {
             File stat2 = filename_stat2
             File filtered = glob("filtered/*fastq.gz")[0]
             File json_out = filename_stat_json
-            #String start = read_string("start.txt")
      }
 }
 
 task finish_rqc {
-    File read
     File filtered_stats
-    File filtered_stats2
-    File filtered
     String container
-    String git_url
-    String informed_by
     String proj
-    String prefix=sub(proj, ":", "_")
-    String resource
-    String url_root
-    String start
  
     command<<<
 
         set -e
-        end=`date --iso-8601=seconds`
 
        # Generate stats but rename some fields untilt the script is
        # fixed.
@@ -142,7 +124,7 @@ task finish_rqc {
 
     >>>
     output {
-        File stats_json = "stats.json"
+        Object stats = read_json("stats.json") 
     }
 
     runtime {
