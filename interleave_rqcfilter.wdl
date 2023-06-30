@@ -62,7 +62,7 @@ task stage {
 
    command <<<
        set -e
-       if [ $( echo ${input_fastq1}|egrep -c "https*:") -gt 0 ] ; then
+       if [ $( echo ${input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
            wget ${input_fastq1} -O ${target_reads_1}
            wget ${input_fastq2} -O ${target_reads_2}
        else
