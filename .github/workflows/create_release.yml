@@ -38,6 +38,6 @@ jobs:
 
       # Create a release and upload the assets
       - name: Create Release
-        run: gh release create v${{ steps.bump_version.outputs.NEW_VERSION }} rqcfilter.wdl interleave_rqcfilter.wdl bundle.zip
+        run: gh release create ${{ steps.bump_version.outputs.NEW_VERSION }} rqcfilter.wdl interleave_rqcfilter.wdl bundle.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
