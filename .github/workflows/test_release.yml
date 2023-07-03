@@ -37,5 +37,6 @@ jobs:
         run: |
           echo "Debug: New release would be created with version ${{ steps.bump_version.outputs.NEW_VERSION }}"
           echo "Debug: The following files would be attached:"
-          echo "       - main.wdl"
+          echo "       - rqcfilter.wdl"
+          echo "       - interleave_rqcfilter.wdl"
           echo "       - bundle.zip"
