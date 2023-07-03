@@ -1,7 +1,9 @@
-name: Test Release Creation
+name: Create Release
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   release:
@@ -30,13 +32,12 @@ jobs:
           echo "New version: $NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
 
+      # Zip the wdl files
       - name: Create bundle zip
         run: zip -r bundle.zip *.wdl
 
-      - name: Debug info
-        run: |
-          echo "Debug: New release would be created with version ${{ steps.bump_version.outputs.NEW_VERSION }}"
-          echo "Debug: The following files would be attached:"
-          echo "       - rqcfilter.wdl"
-          echo "       - interleave_rqcfilter.wdl"
-          echo "       - bundle.zip"
+      # Create a release and upload the assets
+      - name: Create Release
+        uses: gh release create v${{ steps.bump_version.outputs.NEW_VERSION }} rqcfilter.wdl interleave_rqcfilter.wdl bundle.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
