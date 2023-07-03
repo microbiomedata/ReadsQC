@@ -1,0 +1,47 @@
+name: Test Release Creation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Check out the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      # Fetch latest release tag
+      - name: Get latest release
+        id: latest_release
+        run: |
+          LATEST_RELEASE=$(curl --silent "https://api.github.com/repos/$GITHUB_REPOSITORY/releases/latest" | jq -r .tag_name)
+          echo "Latest release: $LATEST_RELEASE"
+          echo "::set-output name=tag::${LATEST_RELEASE}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Bump the patch version
+      - name: Bump patch version
+        id: bump_version
+        run: |
+          LATEST_VERSION=${{ steps.latest_release.outputs.tag }}
+          IFS='.' read -ra VERSION_PARTS <<< "$LATEST_VERSION"
+          PATCH_BUMP=$(( ${VERSION_PARTS[2]} + 1 ))
+          NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.$PATCH_BUMP"
+          echo "New version: $NEW_VERSION"
+          echo "::set-output name=new_version::${NEW_VERSION}"
+
+      # Zip the wdl files
+      - name: Create bundle zip
+        run: zip -r bundle.zip *.wdl
+
+      # Debug info instead of actual release
+      - name: Debug info
+        run: |
+          echo "Debug: New release would be created with version ${{ steps.bump_version.outputs.new_version }}"
+          echo "Debug: The following files would be attached:"
+          echo "       - rqcfilter.wdl"
+          echo "       - interleave_rqcfilter.wdl"
+          echo "       - bundle.zip"
