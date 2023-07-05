@@ -12,6 +12,7 @@ workflow nmdc_rqcfilter {
 
     call stage {
         input: container=container,
+            memory="10G",
             input_fastq1=input_fastq1,
             input_fastq2=input_fastq2
     }
@@ -54,6 +55,7 @@ workflow nmdc_rqcfilter {
 
 task stage {
    String container
+   String memory
    String target_reads_1="raw_reads_1.fastq.gz"
    String target_reads_2="raw_reads_2.fastq.gz"
    String output_interleaved="raw_interleaved.fastq.gz"
@@ -70,7 +72,7 @@ task stage {
            ln ${input_fastq2} ${target_reads_2} || cp ${input_fastq2} ${target_reads_2}
        fi
 
-       reformat.sh -Xmx${default="10G" memory} in1=${target_reads_1} in2=${target_reads_2} out=${output_interleaved}
+       reformat.sh -Xmx${memory} in1=${target_reads_1} in2=${target_reads_2} out=${output_interleaved}
        # Capture the start time
        date --iso-8601=seconds > start.txt
 
