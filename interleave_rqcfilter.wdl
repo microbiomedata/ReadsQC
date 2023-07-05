@@ -37,7 +37,6 @@ workflow nmdc_rqcfilter {
         File filtered_final = finish_rqc.filtered_final
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
-        File objects = finish_rqc.objects
         File rqc_info = make_info_file.rqc_info
     }
 }
