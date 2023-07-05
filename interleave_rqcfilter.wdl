@@ -36,7 +36,7 @@ workflow nmdc_rqcfilter {
            url_root=url_root,
            git_url=git_url,
            informed_by=informed_by,
-           read = stage.read,
+           read = stage.interleaved_reads,
            filtered = qc.filtered,
            filtered_stats = qc.stat,
            filtered_stats2 = qc.stat2
