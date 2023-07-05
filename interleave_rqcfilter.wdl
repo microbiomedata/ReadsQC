@@ -1,12 +1,13 @@
 workflow nmdc_rqcfilter {
     String  container="bfoster1/img-omics:0.1.9"
+    String  bbtools_container="microbiomedata/bbtools:38.96"
     String  proj
     String  input_fastq1
     String  input_fastq2
     String  database="/refdata/"
 
     call stage {
-        input: container=container,
+        input: container=bbtools_container,
             memory="10G",
             input_fastq1=input_fastq1,
             input_fastq2=input_fastq2
