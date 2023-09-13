@@ -1,0 +1,25 @@
+FROM mambaorg/micromamba:latest
+
+LABEL base.image="mambaorg/micromamba:latest"
+LABEL dockerfile.version="1"
+LABEL software="pbmarkdup"
+LABEL software.version="1.0.3"
+LABEL description="Mark duplicate reads from PacBio sequencing of an amplified library"
+LABEL website="https://anaconda.org/bioconda/pbmarkdup"
+LABEL license="BSD-3-Clause-Clear"
+LABEL maintainer="Chienchi Lo"
+LABEL maintainer.email="chienchi@lanl.gov"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=C
+# SHELL ["/bin/bash", "-c"] 
+
+#  pbmarkdup install 
+RUN micromamba create -n pbbioconda -y -c bioconda pbmarkdup pbtk \
+    && micromamba clean --all -y \
+    && echo "micromamba activate pbbioconda" >> ~/.bashrc
+
+ENV PATH="${PATH}:/opt/conda/envs/pbbioconda/bin"
+
+WORKDIR /data
