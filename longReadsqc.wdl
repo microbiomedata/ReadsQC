@@ -13,6 +13,10 @@ workflow LongReadsQC{
     Boolean? print_log
   }
 
+  call pbmarkdup {
+
+  }
+
   # call pbfilter{
   #   input:
   #   file = file,
@@ -66,7 +70,7 @@ workflow LongReadsQC{
 
 task pbmarkdup{
   input{
-    String log_level
+    String? log_level
     File in_file
     String out_file
     Boolean? rmdup
@@ -83,9 +87,8 @@ task pbmarkdup{
   ~{out_file} 
 
   gzip ~{out_file}
-  # need Pacbio smrtlink in the path
-  # pbmarkdup --log-level INFO -f -r pbio-2861.29528.bc2002_OA--bc2002_OA.bc2002_OA--bc2002_OA.ccs.bam pbio-2861.29528.bc2002_OA--bc2002_OA.bc2002_OA--bc2002_OA.ccs.dedup.bam
-  >>>
+  
+   >>>
 
   output{
     File out_fastq = "${out_file}.gz"
@@ -118,10 +121,6 @@ task icecreamfilter{
   ~{"out=" + out_good} \
   ~{"outb=" + out_bad} 
 
-  # icecream filter - removes reads that are missing smrtlink adapters
-  # icecreamfinder.sh jni=t json=t ow=t cq=f keepshortreads=f trim=f ccs=t in=triangle.trim2.tmp.bam stats=triangle.json out=pbio-2861.29528.bc2002_OA--bc2002_OA.bc2
-  # 002_OA--bc2002_OA.ccs.unsorted.filter.bam outb=pbio-2861.29528.bc2002_OA--bc2002_OA.bc2002_OA--bc2002_OA.ccs.bad.bam outa=pbio-2861.29528.bc2002_OA--bc2002_OA.bc
-  # 2002_OA--bc2002_OA.ccs.ambig.bam
   >>>
 
   output{
@@ -137,22 +136,27 @@ task icecreamfilter{
 
 task bbdukEnds{
   input{
-
+    File? reference
+    File in_file
+    File out_file
   }
 
   command <<<
 
-  bbduck.sh \
-
-
-
   # bbduk - trim out adapter from read ends
-  bbduk.sh k=20 mink=12 edist=1 mm=f ktrimtips=60 ref=/bbmap/resources/PacBioAdapter.fa in=pbio-2861.29528.bc2002_OA--bc2002_OA.bc2002_OA--bc2002_OA.ccs.dedup.bam
-  out=triangle.trim.tmp.bam
+  bbduk.sh \
+  k=20 \
+  mink=12 \
+  edist=1 \
+  mm=f \
+  ktrimtips=60 \
+  if (defined(reference)) then ~{"ref=" + reference} else "ref=/bbmap/resources/PacBioAdapter.fa" \
+  ~{"in=" + in_file} \
+  ~{"out=" + out_file}
   >>>
 
   output{
-
+    File out_fastq = "${out_file}.gz"
   }
 
   runtime{
@@ -163,17 +167,24 @@ task bbdukEnds{
 
 task bbdukReads{
   input{
-
+    File? reference
+    File in_file
+    File out_file
   }
 
   command <<<
   # bbduk - removes reads that still contain adapter sequence
-  bbduk.sh k=24 edist=1 mm=f ref=/bbmap/resources/PacBioAdapter.fa in=triangle.trim.tmp.bam out=pbio-2861.29528.bc2002_OA--bc2002_OA.bc2002_OA--bc2002_OA.ccs.unsor
-  ted.filter.bam
+  bbduk.sh \
+  k=24 \
+  edist=1 \
+  mm=f \
+  if (defined(reference)) then ~{"ref=" + reference} else "ref=/bbmap/resources/PacBioAdapter.fa" \
+  ~{"in=" + in_file} \
+  ~{"out=" + out_file}
   >>>
 
   output{
-
+    File out_fastq = "${out_file}.gz"
   }
 
   runtime{
