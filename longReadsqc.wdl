@@ -4,75 +4,54 @@ version 1.0
 workflow LongReadsQC{
   input{
     File file
-    String? output_path
-    Int? coverage
-    Boolean? ccs
-    Boolean? dedup
-    Boolean? entropy
-    Int? genome_size
-    Boolean? print_log
+    String outdir
+    String? log_level
+    Boolean? rmdup
+    Boolean? overwrite
+    File? reference
   }
 
   call pbmarkdup {
-
+    input: 
+    in_file = file,
+    outdir = outdir,
+    log_level = log_level,
+    rmdup = rmdup,
+    overwrite = overwrite
   }
 
-  # call pbfilter{
-  #   input:
-  #   file = file,
-  #   output_path = output_path,
-  #   coverage = coverage,
-  #   ccs = ccs,
-  #   dedup = dedup,
-  #   entropy = entropy,
-  #   genome_size = genome_size,
-  #   print_log = print_log
-  # }
-  # output {
-  #   Array[File?] outputFiles = pbfilter.outputFiles
-  # }
+  call icecreamfilter {
+    input:
+    in_file = pbmarkdup.out_fastq,
+    outdir = outdir
+  }
+
+  call bbdukEnds {
+    input:
+    in_file = icecreamfilter.output_good,
+    outdir = outdir,
+    reference = reference
+  }
+
+  call bbdukReads {
+    input:
+    in_file = bbdukEnds.out_fastq,
+    outdir = outdir,
+    reference = reference
+  }
+
+  output {
+  File out_fastq = bbdukReads.out_fastq
+    }
+
 }
-
-# task pbfilter {
-#   input{
-#     File file
-#     String? output_path
-#     Int? coverage
-#     Boolean? ccs
-#     Boolean? dedup
-#     Boolean? entropy
-#     Int? genome_size
-#     Boolean? print_log
-#   }
-#   command <<<
-#   # path found from interactive session of docker container
-#     /jgi-rqc-pipeline/filter/pb_filter-15.py \
-#     ~{"-f" + file} \
-#     ~{"-o" + output_path} \
-#     ~{true="--ccs True" false="" ccs} \
-#     ~{true="-d True" false="" dedup} \
-#     ~{"-c" + coverage} \
-#     ~{true="-e True" false="" entropy} \
-#     ~{"-g" + genome_size} \
-#     ~{true="-pl True" false="" print_log} 
-#   >>>
-
-#   output {
-#     Array[File?] outputFiles = glob("${output_path}/*")
-#      }
-
-#   runtime {
-#         docker: "bryce911/rqc-pipeline:20230410 "
-#         continueOnReturnCode: true
-#     }
-# }
-
 
 task pbmarkdup{
   input{
-    String? log_level
     File in_file
-    String out_file
+    String outdir
+    String out_file = outdir + "/pbmarkdup.out"
+    String? log_level
     Boolean? rmdup
     Boolean? overwrite
   }
@@ -84,10 +63,10 @@ task pbmarkdup{
   ~{true="--rmdup" false="" rmdup} \
   ~{true="--clobber" false="" overwrite} \
   ~{in_file} \
-  ~{out_file} 
+  ~{out_file}
 
   gzip ~{out_file}
-  
+
    >>>
 
   output{
@@ -104,8 +83,9 @@ task pbmarkdup{
 task icecreamfilter{
   input{
     File in_file
-    File out_bad
-    File out_good
+    String outdir
+    String out_bad = outdir + "/icecreamfilter.out_bad.out.gz"
+    String out_good = outdir + "/icecreamfilter.out_good.out.gz"
   }
 
   command <<<
@@ -138,7 +118,8 @@ task bbdukEnds{
   input{
     File? reference
     File in_file
-    File out_file
+    String outdir
+    String out_file = outdir + "/bbdukEnds.out.gz"
   }
 
   command <<<
@@ -156,7 +137,7 @@ task bbdukEnds{
   >>>
 
   output{
-    File out_fastq = "${out_file}.gz"
+    File out_fastq = "${out_file}"
   }
 
   runtime{
@@ -169,7 +150,8 @@ task bbdukReads{
   input{
     File? reference
     File in_file
-    File out_file
+    String outdir
+    String out_file = outdir + "/bbdukReads.out.gz"
   }
 
   command <<<
@@ -184,7 +166,7 @@ task bbdukReads{
   >>>
 
   output{
-    File out_fastq = "${out_file}.gz"
+    File out_fastq = "${out_file}"
   }
 
   runtime{
@@ -192,3 +174,4 @@ task bbdukReads{
         continueOnReturnCode: true
   }
 }
+
