@@ -154,12 +154,8 @@ task finish_rqc {
     File filtered_stats2
     File filtered
     String container
-    String git_url
-    String informed_by
     String proj
     String prefix=sub(proj, ":", "_")
-    String resource
-    String url_root
     String start
  
     command<<<
