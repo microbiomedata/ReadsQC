@@ -5,7 +5,6 @@ version 1.0
 
 workflow LongReadsQC{
   input{
-
     File file
     String outdir
     String prefix = basename(file)
