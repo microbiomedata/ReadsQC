@@ -1,21 +1,23 @@
+version 1.0
 import "rqcfilter.wdl" as rqc
 workflow rqctest {
+  input{  
   String  container="microbiomedata/bbtools:38.96"
   String  validate_container="microbiomedata/comparejson"
   String  database="/vol_b/nmdc_workflows/data/test_refdata"
   Boolean flag=false
-  String? memory="60G"
-  String? threads="8"
+  String  memory="60G"
+  String  threads="8"
   String  url="https://portal.nersc.gov/cfs/m3408/test_data/Ecoli_10x-int.fastq.gz"
   String  ref_json="https://raw.githubusercontent.com/microbiomedata/ReadsQC/master/test/small_test_filterStats.json"
-  
+  }
   call prepare {
     input: container=container,
            url=url,
            ref_json=ref_json
   }
   call rqc.rqcfilter as filter {
-    input: input_file=prepare.fastq,
+    input: input_files=prepare.fastq,
            database=database,
            container=container,
            chastityfilter_flag=flag,
@@ -29,9 +31,11 @@ workflow rqctest {
   }
 }
 task prepare {
+  input{
    String container
    String ref_json
    String url
+   }
    command{
        wget -O "input.fastq.gz" ${url}
        wget -O "ref_json.json" ${ref_json}
@@ -48,9 +52,11 @@ task prepare {
    }
 }
 task validate {
+  input{
    String container
    File refjson
    File user_json
+  }
    command {
        compare_json.py -i ${refjson} -f ${user_json}  
    }

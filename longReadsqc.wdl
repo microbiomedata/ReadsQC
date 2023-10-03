@@ -5,13 +5,13 @@ version 1.0
 
 workflow LongReadsQC{
   input{
-    File file
-    String outdir
-    String prefix = basename(file)
-    String log_level='INFO'
+    File    file
+    String  outdir
+    String  prefix = basename(file)
+    String  log_level='INFO'
     Boolean rmdup = true
     Boolean overwrite = true
-    File? reference
+    File?   reference
   }
 
   call pbmarkdup {
@@ -54,10 +54,10 @@ workflow LongReadsQC{
 
 task pbmarkdup{
   input{
-    File in_file
-    String outdir
-    String out_file = outdir + "/pbmarkdup.fq"
-    String? log_level
+    File     in_file
+    String   outdir
+    String   out_file = outdir + "/pbmarkdup.fq"
+    String?  log_level
     Boolean? rmdup
     Boolean? overwrite
   }
@@ -83,12 +83,13 @@ task pbmarkdup{
      docker: "microbiomedata/pbmarkdup:1.0"
         continueOnReturnCode: true
   }
+
 }
 
 
 task icecreamfilter{
   input{
-    File in_file
+    File   in_file
     String outdir
     String prefix
     String out_bad = outdir + "/" + prefix + ".icecreamfilter.out_bad.out.gz"
@@ -126,9 +127,9 @@ task icecreamfilter{
 
 task bbdukEnds{
   input{
-    File? reference
+    File?  reference
+    File   in_file
     String prefix
-    File in_file
     String outdir
     String out_file = outdir + "/" + prefix + ".bbdukEnds.out.fq.gz"
   }
@@ -161,9 +162,9 @@ task bbdukEnds{
 
 task bbdukReads{
   input{
-    File? reference
+    File?  reference
+    File   in_file
     String prefix
-    File in_file
     String outdir
     String out_file = outdir + "/" + prefix + ".filtered.fq.gz"
   }

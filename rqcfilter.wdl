@@ -1,3 +1,4 @@
+# Short reads QC workflow
 version 1.0
 
 workflow nmdc_rqcfilter {
@@ -109,37 +110,37 @@ task rqcfilter {
         set -eo pipefail
 
         rqcfilter2.sh \
-        ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
-        ~{"-da threads=" + jvm_threads} \
-        ~{chastityfilter} \
-        jni=t \
-        ~{"in=" + input_files} \
-        path=filtered \
-        rna=f \
-        trimfragadapter=t \
-        qtrim=r \
-        trimq=0 \
-        maxns=3 \
-        maq=3 \
-        minlen=51 \
-        mlf=0.33 \
-        phix=t \
-        removehuman=t \
-        removedog=t \
-        removecat=t \
-        removemouse=t \
-        khist=t \
-        removemicrobes=t \
-        sketch \
-        kapa=t \
-        clumpify=t \
-        tmpdir= \ # not sure if there should be something specified
-        barcodefilter=f \
-        trimpolyg=5 \
-        usejni=f \
-        ~{"rqcfilterdata=" + rqcfilterdata} \
-        ~{"> >(tee -a " + filename_outlog + ")"} \ # not sure if this line and next are correct
-        ~{"2> >(tee -a " + filename_errlog + ">&2)"}
+            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            ~{"-da threads=" + jvm_threads} \
+            ~{chastityfilter} \
+            jni=t \
+            ~{"in=" + input_files} \
+            path=filtered \
+            rna=f \
+            trimfragadapter=t \
+            qtrim=r \
+            trimq=0 \
+            maxns=3 \
+            maq=3 \
+            minlen=51 \
+            mlf=0.33 \
+            phix=t \
+            removehuman=t \
+            removedog=t \
+            removecat=t \
+            removemouse=t \
+            khist=t \
+            removemicrobes=t \
+            sketch \
+            kapa=t \
+            clumpify=t \
+            tmpdir= \ # not sure if there should be something specified
+            barcodefilter=f \
+            trimpolyg=5 \
+            usejni=f \
+            ~{"rqcfilterdata=" + rqcfilterdata} \
+            ~{"> >(tee -a " + filename_outlog + ")"} \ # not sure if this line and next are correct
+            ~{"2> >(tee -a " + filename_errlog + ">&2)"}
 
         python <<CODE
         import json
@@ -168,7 +169,7 @@ task rqcfilter {
 
 task make_info_file {
     input{
-        File info_file
+        File   info_file
         String proj
         String prefix=sub(proj, ":", "_")
         String container
@@ -196,9 +197,9 @@ task make_info_file {
 
 task finish_rqc {
     input {
-        File filtered_stats
-        File filtered_stats2
-        File filtered
+        File   filtered_stats
+        File   filtered_stats2
+        File   filtered
         String container
         String proj
         String prefix=sub(proj, ":", "_")
