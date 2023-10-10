@@ -19,14 +19,6 @@ workflow ShortReadsQC {
             input_fastq1=input_files[0],
             input_fastq2=input_files[1]
         }
-    #     call rqcfilter as qc {
-    #     input: 
-    #         input_files = if (length(input_files) == 1) then stage.read else stage_interleave.read,
-    #         threads = "16",
-    #         database = database,
-    #         memory = "60G",
-    #         container = bbtools_container
-    # }
     } 
 
     if (length(input_files) == 1) {
@@ -35,20 +27,12 @@ workflow ShortReadsQC {
             container=container,
             input_file= input_files[0] 
         }
-    #     call rqcfilter as qc {
-    #     input: 
-    #         input_files = if (length(input_files) == 1) then stage.read else stage_interleave.read,
-    #         threads = "16",
-    #         database = database,
-    #         memory = "60G",
-    #         container = bbtools_container
-    # }
     }
 
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
         input: 
-            input_files = if (length(input_files) == 1) then select_all([stage.read]) else select_all([stage_interleave.read]),
+            input_files = if (length(input_files) > 1) then stage_interleave.read else stage.read,
             threads = "16",
             database = database,
             memory = "60G",
