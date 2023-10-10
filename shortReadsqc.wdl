@@ -7,32 +7,31 @@ workflow ShortReadsQC {
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
-        Array[File] input_files
+        Array[String] input_files
         String  database="/refdata/"
     }
 
     if (length(input_files) > 1) {
         call stage_interleave {
-        input: 
+        input:
             container=bbtools_container,
             memory="10G",
             input_fastq1=input_files[0],
             input_fastq2=input_files[1]
         }
-    } 
-
+    }
     if (length(input_files) == 1) {
-        call stage {
-        input: 
+        call stage_single {
+        input:
             container=container,
-            input_file= input_files[0] 
+            input_file = input_files[0]
         }
     }
 
     # Estimate RQC runtime at an hour per compress GB
-    call rqcfilter as qc {
-        input: 
-            input_files = if (length(input_files) > 1) then stage_interleave.read else stage.read,
+   call rqcfilter as qc {
+        input:
+            input_fastq = if length(input_files) > 1 then stage_interleave.reads_fastq else stage_single.reads_fastq,
             threads = "16",
             database = database,
             memory = "60G",
@@ -60,14 +59,14 @@ workflow ShortReadsQC {
 }
 
 
-task stage {
+task stage_single {
     input{
         String container
         String target="raw.fastq.gz"
-        File input_file
+        String input_file
     }
    command <<<
-  
+
     set -e
     if [ $( echo ~{input_file}|egrep -c "https*:") -gt 0 ] ; then
         wget ~{input_file} -O ~{target}
@@ -80,7 +79,7 @@ task stage {
    >>>
 
    output{
-      File read = "${target}"
+      File reads_fastq = "~{target}"
       String start = read_string("start.txt")
    }
    runtime {
@@ -120,7 +119,7 @@ task stage_interleave {
    >>>
 
    output{
-      File read = "${output_interleaved}"
+      File reads_fastq = "~{output_interleaved}"
       String start = read_string("start.txt")
    }
    runtime {
@@ -134,7 +133,7 @@ task stage_interleave {
 
 task rqcfilter {
     input{
-        File input_files
+        File? input_fastq
         String container
         String database
         String rqcfilterdata = database + "/RQCFilterData"
@@ -168,7 +167,7 @@ task rqcfilter {
             threads=~{jvm_threads} \
             ~{chastityfilter} \
             jni=t \
-            in=~{input_files} \
+            in=~{input_fastq} \
             path=filtered \
             rna=f \
             trimfragadapter=t \
@@ -192,12 +191,12 @@ task rqcfilter {
             trimpolyg=5 \
             usejni=f \
             rqcfilterdata=~{rqcfilterdata} \
-            > >(tee -a  ~{filename_outlog}) \ 
+            > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
 
         python <<CODE
         import json
-        f = open("~{filename_stat}",'r') 
+        f = open("~{filename_stat}",'r')
         d = dict()
         for line in f:
             if not line.rstrip():continue
@@ -227,7 +226,7 @@ task make_info_file {
         String prefix=sub(proj, ":", "_")
         String container
     }
-    
+
     command<<<
         sed -n 2,5p ~{info_file} 2>&1 | \
           perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
@@ -256,9 +255,9 @@ task finish_rqc {
         String proj
         String prefix=sub(proj, ":", "_")
     }
- 
+
     command<<<
-    
+
         set -e
         end=`date --iso-8601=seconds`
         # Generate QA objects
