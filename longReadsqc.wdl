@@ -5,7 +5,7 @@ version 1.0
 
 workflow LongReadsQC{
   input{
-    File    file
+    String  file
     String  outdir
     String  prefix = basename(file)
     String  log_level='INFO'
@@ -54,7 +54,7 @@ workflow LongReadsQC{
 
 task pbmarkdup{
   input{
-    File     in_file
+    String   in_file
     String   outdir
     String   out_file = outdir + "/pbmarkdup.fq"
     String?  log_level
