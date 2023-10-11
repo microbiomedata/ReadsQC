@@ -50,7 +50,7 @@ workflow nmdc_rqcfilter {
 task stage {
    input {
        String container
-       String target="raw.fastq.gz"
+       File target="raw.fastq.gz"
        File input_file
    }
    command <<<
