@@ -1,11 +1,12 @@
 version 1.0
 
 workflow nmdc_rqcfilter {
+    input {
     String  container="bfoster1/img-omics:0.1.9"
     String  proj
     String  input_files
     String  database="/refdata/"
-
+}
     call stage {
         input { container=container,
             input_file=input_files
