@@ -51,7 +51,7 @@ task stage {
    input {
        String container
        String target="raw.fastq.gz"
-       String input_file
+       File input_file
    }
    command <<<
        set -e
