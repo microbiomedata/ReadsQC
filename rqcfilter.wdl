@@ -56,7 +56,7 @@ task stage {
    command <<<
        set -e
        echo "input file ${input_file}"
-       echo ${target}
+       echo "target ${target}"
        if [ $( echo ${input_file}|egrep -c "https*:") -gt 0 ] ; then
            wget ${input_file} -O ${target}
        else
