@@ -7,30 +7,34 @@ workflow nmdc_rqcfilter {
     String  database="/refdata/"
 
     call stage {
-        input: container=container,
+        input { container=container,
             input_file=input_files
+           }
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
-        input: input_files=stage.read,
+        input {input_files=stage.read,
             threads=16,
             database=database,
             memory="60G"
+            }
     }
     call make_info_file {
-        input: info_file = qc.info_file,
+        input {info_file = qc.info_file,
             container=container,
             proj=proj
+            }
     }
 
     call finish_rqc {
-        input: container="microbiomedata/workflowmeta:1.1.1",
+        input {container="microbiomedata/workflowmeta:1.1.1",
            proj=proj,
            start=stage.start,
            read = stage.read,
            filtered = qc.filtered,
            filtered_stats = qc.stat,
            filtered_stats2 = qc.stat2
+           }
     }
     output {
         File filtered_final = finish_rqc.filtered_final
