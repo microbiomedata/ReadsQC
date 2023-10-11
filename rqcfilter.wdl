@@ -55,12 +55,13 @@ task stage {
    }
    command <<<
        set -e
+       refName=`basename "${target}"`
        echo "input file ${input_file}"
-       echo "target ${target}"
+       echo "target ${refName}"
        if [ $( echo ${input_file}|egrep -c "https*:") -gt 0 ] ; then
-           wget ${input_file} -O ${target}
+           wget ${input_file} -O ${refName}
        else
-           ln ${input_file} ${target} || cp ${input_file} ${target}
+           ln ${input_file} ${refName} || cp ${input_file} ${refName}
        fi
        # Capture the start time
        date --iso-8601=seconds > start.txt
@@ -68,7 +69,7 @@ task stage {
    >>>
 
    output{
-      File read = "${target}"
+      File read = "${refName}"
       String start = read_string("start.txt")
    }
    runtime {
