@@ -1,3 +1,5 @@
+version 1.0
+
 workflow nmdc_rqcfilter {
     String  container="bfoster1/img-omics:0.1.9"
     String  proj
