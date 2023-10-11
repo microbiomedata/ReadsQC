@@ -6,36 +6,36 @@ workflow nmdc_rqcfilter {
     String  proj
     String  input_files
     String  database="/refdata/"
-}
+    }
     call stage {
-        input { container=container,
+        input: container=container,
             input_file=input_files
-           }
+
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
-        input {input_files=stage.read,
+        input :input_files=stage.read,
             threads=16,
             database=database,
             memory="60G"
-            }
+
     }
     call make_info_file {
-        input {info_file = qc.info_file,
+        input :info_file = qc.info_file,
             container=container,
             proj=proj
-            }
+
     }
 
     call finish_rqc {
-        input {container="microbiomedata/workflowmeta:1.1.1",
+        input: container="microbiomedata/workflowmeta:1.1.1",
            proj=proj,
            start=stage.start,
            read = stage.read,
            filtered = qc.filtered,
            filtered_stats = qc.stat,
            filtered_stats2 = qc.stat2
-           }
+
     }
     output {
         File filtered_final = finish_rqc.filtered_final
@@ -48,10 +48,11 @@ workflow nmdc_rqcfilter {
 
 
 task stage {
-   String container
-   String target="raw.fastq.gz"
-   String input_file
-
+   input {
+       String container
+       String target="raw.fastq.gz"
+       String input_file
+   }
    command <<<
        set -e
        if [ $( echo ${input_file}|egrep -c "https*:") -gt 0 ] ; then
@@ -78,6 +79,7 @@ task stage {
 
 
 task rqcfilter {
+     input {
      File input_files
      String container="microbiomedata/bbtools:38.96"
      String database
@@ -93,7 +95,7 @@ task rqcfilter {
      String system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
      String jvm_threads=select_first([threads,system_cpu])
      String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
-
+    }
      runtime {
             docker: container
             memory: "70 GB"
@@ -134,11 +136,12 @@ task rqcfilter {
 }
 
 task make_info_file {
+    input {
     File info_file
     String proj
     String prefix=sub(proj, ":", "_")
     String container
-    
+    }
     command<<<
         sed -n 2,5p ${info_file} 2>&1 |  perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > ${prefix}_readsQC.info
         echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> ${prefix}_readsQC.info
@@ -156,6 +159,7 @@ task make_info_file {
 }
 
 task finish_rqc {
+    input {
     File read
     File filtered_stats
     File filtered_stats2
@@ -164,7 +168,7 @@ task finish_rqc {
     String proj
     String prefix=sub(proj, ":", "_")
     String start
- 
+    }
     command<<<
 
         set -e
