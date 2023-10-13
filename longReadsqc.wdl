@@ -5,19 +5,22 @@ version 1.0
 
 workflow LongReadsQC{
   input{
-    String  file
-    String  outdir
-    String  prefix = basename(file)
+    String  file    
+    String  proj
+    String prefix=sub(proj, ":", "_")    
     String  log_level='INFO'
     Boolean rmdup = true
     Boolean overwrite = true
     File?   reference
+    # String  outdir 
+    # String  prefix = basename(file)
   }
 
   call pbmarkdup {
     input: 
     in_file = file,
-    outdir = outdir,
+    prefix = prefix,
+    # outdir = outdir,
     log_level = log_level,
     rmdup = rmdup,
     overwrite = overwrite
@@ -27,14 +30,14 @@ workflow LongReadsQC{
     input:
     in_file = pbmarkdup.out_fastq,
     prefix = prefix,
-    outdir = outdir
+    # outdir = outdir
   }
 
   call bbdukEnds {
     input:
     in_file = icecreamfilter.output_good,
     prefix = prefix,
-    outdir = outdir,
+    # outdir = outdir,
     reference = reference
   }
 
@@ -42,7 +45,7 @@ workflow LongReadsQC{
     input:
     in_file = bbdukEnds.out_fastq,
     prefix = prefix,
-    outdir = outdir,
+    # outdir = outdir,
     reference = reference
   }
 
@@ -55,15 +58,17 @@ workflow LongReadsQC{
 task pbmarkdup{
   input{
     String   in_file
-    String   outdir
-    String   out_file = outdir + "/pbmarkdup.fq"
+    String   prefix
+    String   out_file = prefix + ".pbmarkdup.fq"
     String?  log_level
     Boolean? rmdup
     Boolean? overwrite
+    # String   outdir
+    # String   out_file = outdir + "/pbmarkdup.fq"
   }
 
   command <<<
-  mkdir -m 755 -p ~{outdir}
+  # mkdir -m 755 -p ~{"outdir"}
   pbmarkdup \
   ~{if (defined(log_level)) then "--log-level " + log_level else  "--log-level INFO"  } \
   ~{true="--rmdup" false="" rmdup} \
@@ -76,24 +81,25 @@ task pbmarkdup{
    >>>
 
   output{
-    File out_fastq = "${out_file}.gz"
+    File out_fastq = "~{out_file}.gz"
   }
 
   runtime{
      docker: "microbiomedata/pbmarkdup:1.0"
         continueOnReturnCode: true
   }
-
 }
 
 
 task icecreamfilter{
   input{
     File   in_file
-    String outdir
     String prefix
-    String out_bad = outdir + "/" + prefix + ".icecreamfilter.out_bad.out.gz"
-    String out_good = outdir + "/" + prefix + ".icecreamfilter.out_good.out.gz"
+    String out_bad = prefix + ".icecreamfilter.out_bad.out.gz"
+    String out_good = prefix + ".icecreamfilter.out_good.out.gz"
+    # String outdir
+    # String out_bad = outdir + "/" + prefix + ".icecreamfilter.out_bad.out.gz"
+    # String out_good = outdir + "/" + prefix + ".icecreamfilter.out_good.out.gz"
   }
 
   command <<<
@@ -114,8 +120,8 @@ task icecreamfilter{
   >>>
 
   output{
-    File output_good = "${out_good}"
-    File output_bad = "${out_bad}"
+    File output_good = "~{out_good}"
+    File output_bad = "~{out_bad}"
     File stats = "triangle.json"
   }
 
@@ -130,8 +136,9 @@ task bbdukEnds{
     File?  reference
     File   in_file
     String prefix
-    String outdir
-    String out_file = outdir + "/" + prefix + ".bbdukEnds.out.fq.gz"
+    String out_file = prefix + ".bbdukEnds.out.fq.gz"
+    # String outdir
+    # String out_file = outdir + "/" + prefix + ".bbdukEnds.out.fq.gz"
   }
 
   command <<<
@@ -150,7 +157,7 @@ task bbdukEnds{
   >>>
 
   output{
-    File out_fastq = "${out_file}"
+    File out_fastq = "~{out_file}"
     File stats = "stderr"
   }
 
@@ -165,8 +172,10 @@ task bbdukReads{
     File?  reference
     File   in_file
     String prefix
-    String outdir
-    String out_file = outdir + "/" + prefix + ".filtered.fq.gz"
+    String out_file = prefix + ".filtered.fq.gz"
+    # String outdir
+    # String out_file = outdir + "/" + prefix + ".filtered.fq.gz"
+    
   }
 
   command <<<
@@ -182,7 +191,7 @@ task bbdukReads{
   >>>
 
   output{
-    File out_fastq = "${out_file}"
+    File out_fastq = "~{out_file}"
     File stats = "stderr" 
   }
 
