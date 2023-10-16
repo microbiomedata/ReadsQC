@@ -4,7 +4,9 @@ workflow nmdc_rqcfilter {
     input{
     String  container="bfoster1/img-omics:0.1.9"
     String  bbtools_container="microbiomedata/bbtools:38.96"
+    String  worflowmeta_container="microbiomedata/workflowmeta:1.1.1"
     String  proj
+    String  prefix=sub(proj, ":", "_")
     String  input_fastq1
     String  input_fastq2
     String  database="/refdata/"
@@ -21,22 +23,21 @@ workflow nmdc_rqcfilter {
         input: input_files=stage.interleaved_reads,
             threads="16",
             database=database,
-            memory="60G"
+            memory="60G",
+            container = bbtools_container
     }
     call make_info_file {
         input: info_file = qc.info_file,
             container=container,
-            proj=proj
+            prefix = prefix
     }
 
     call finish_rqc {
-        input: container="microbiomedata/workflowmeta:1.1.1",
-            proj=proj,
+        input: container=worflowmeta_container,
+            prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
             filtered_stats2 = qc.stat2
-            # start=stage.start,
-            # read = stage.interleaved_reads,
     }
     output {
         File filtered_final = finish_rqc.filtered_final
@@ -91,7 +92,7 @@ task stage {
 task rqcfilter {
     input{
      File input_files
-     String  container="microbiomedata/bbtools:38.96"
+     String  container
      String  database
      String  rqcfilterdata = database + "/RQCFilterData"
      Boolean chastityfilter_flag=true
@@ -112,17 +113,16 @@ task rqcfilter {
             docker: container
             memory: "70 GB"
             cpu:  16
-            # database: database
-            # runtime_minutes: ceil(size(input_files, "GB")*60)
      }
 
      command<<<
-        #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
+
         rqcfilter2.sh \
-            -Xmx~{default="60G" memory} \
-            -da threads=~{jvm_threads} \
+            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            -da \
+            threads=~{jvm_threads} \
             ~{chastityfilter} \
             jni=t \
             in=~{input_files} \
@@ -148,9 +148,9 @@ task rqcfilter {
             barcodefilter=f \
             trimpolyg=5 \
             usejni=f \
-            ~{"rqcfilterdata=" + rqcfilterdata} \
-            ~{"> >(tee -a " + filename_outlog + ")"} \ # not sure if this line and next are correct
-            ~{"2> >(tee -a " + filename_errlog + ">&2)"}
+            rqcfilterdata=~{rqcfilterdata} \
+            > >(tee -a  ~{filename_outlog}) \
+            2> >(tee -a ~{filename_errlog}  >&2)
 
         python <<CODE
         import json
@@ -173,21 +173,22 @@ task rqcfilter {
             File info_file = filename_reproduce
             File filtered = glob("filtered/*fastq.gz")[0]
             File json_out = filename_stat_json
-            #String start = read_string("start.txt")
      }
 }
 
 task make_info_file {
     input{
     File info_file
-    String proj
-    String prefix=sub(proj, ":", "_")
+    String prefix
     String container
     }
     
     command<<<
-        sed -n 2,5p ~{info_file} 2>&1 |  perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > ~{prefix}_readsQC.info
-        echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> ~{prefix}_readsQC.info
+        sed -n 2,5p ~{info_file} 2>&1 | \
+         perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
+         ~{prefix}_readsQC.info
+        echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> \
+        ~{prefix}_readsQC.info
     >>>
 
     output {
@@ -208,8 +209,7 @@ task finish_rqc {
     File filtered_stats2
     File filtered
     String container
-    String proj
-    String prefix=sub(proj, ":", "_")
+    String prefix
     # String start
     }
  
