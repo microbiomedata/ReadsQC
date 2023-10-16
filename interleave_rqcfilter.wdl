@@ -145,7 +145,6 @@ task rqcfilter {
             sketch \
             kapa=t \
             clumpify=t \
-            tmpdir= \
             barcodefilter=f \
             trimpolyg=5 \
             usejni=f \
