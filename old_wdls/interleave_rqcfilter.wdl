@@ -76,7 +76,7 @@ task stage {
    >>>
 
    output{
-      File interleaved_reads = "${output_interleaved}"
+      File interleaved_reads = "~{output_interleaved}"
       String start = read_string("start.txt")
    }
    runtime {
@@ -145,7 +145,6 @@ task rqcfilter {
             sketch \
             kapa=t \
             clumpify=t \
-            tmpdir= \
             barcodefilter=f \
             trimpolyg=5 \
             usejni=f \
@@ -155,14 +154,14 @@ task rqcfilter {
 
         python <<CODE
         import json
-        f = open("${filename_stat}",'r')
+        f = open("~{filename_stat}",'r')
         d = dict()
         for line in f:
             if not line.rstrip():continue
             key,value=line.rstrip().split('=')
             d[key]=float(value) if 'Ratio' in key else int(value)
 
-        with open("${filename_stat_json}", 'w') as outfile:
+        with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
      >>>
@@ -192,7 +191,7 @@ task make_info_file {
     >>>
 
     output {
-        File rqc_info = "${prefix}_readsQC.info"
+        File rqc_info = "~{prefix}_readsQC.info"
     }
     runtime {
         memory: "1 GiB"
@@ -230,9 +229,9 @@ task finish_rqc {
 
     >>>
     output {
-        File filtered_final = "${prefix}_filtered.fastq.gz"
-        File filtered_stats_final = "${prefix}_filterStats.txt"
-        File filtered_stats2_final = "${prefix}_filterStats2.txt"
+        File filtered_final = "~{prefix}_filtered.fastq.gz"
+        File filtered_stats_final = "~{prefix}_filterStats.txt"
+        File filtered_stats2_final = "~{prefix}_filterStats2.txt"
     }
 
     runtime {
