@@ -1,0 +1,2 @@
+# test cmd
+java -Dconfig.file=cromwell_shifter.conf -Dbackend.providers.Local.config.dockerRoot=$(pwd)/cromwell-executions -jar /global/cfs/projectdirs/jaws/cromwell/cromwell.jar run rqcfilter_cori.wdl -i test-inputs.json
