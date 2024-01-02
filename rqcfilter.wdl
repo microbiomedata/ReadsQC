@@ -9,12 +9,14 @@ workflow rqcfilter{
     Array[String] input_files
     String  proj
     Boolean shortRead 
+    Boolean gcloud_env=false
   }
     if (shortRead) {
         call srqc.ShortReadsQC{
             input:
             input_files = input_files,
-            proj = proj
+            proj = proj,
+            gcloud_env = gcloud_env
         }
     }
     if (!shortRead) {

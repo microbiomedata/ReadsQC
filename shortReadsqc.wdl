@@ -7,7 +7,8 @@ workflow ShortReadsQC {
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
-        String prefix=sub(proj, ":", "_")
+        String  prefix=sub(proj, ":", "_")
+        Boolean gcloud_env=false
         Array[String] input_files
         String  database="/refdata/"
     }
@@ -35,6 +36,7 @@ workflow ShortReadsQC {
             input_fastq = if length(input_files) > 1 then stage_interleave.reads_fastq else stage_single.reads_fastq,
             threads = "16",
             database = database,
+            gcloud_env = gcloud_env,
             memory = "60G",
             container = bbtools_container
     }
@@ -138,6 +140,9 @@ task rqcfilter {
         String container
         String database
         String rqcfilterdata = database + "/RQCFilterData"
+        Boolean gcloud_env=false
+        String gcloud_db_path = "/cromwell_root/workflows_refdata/refdata/RQCFilterData"
+        Array[File]? gcloud_db= if (gcloud_env) then [database] else []
         Boolean chastityfilter_flag=true
         String? memory
         String? threads
@@ -161,7 +166,15 @@ task rqcfilter {
      command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-
+        if ~{gcloud_env}; then
+		    dbdir=`ls -d /mnt/*/*/RQCFilterData`
+            if [ ! -z $dbdir ]; then
+                ln -s $dbdir ~{gcloud_db_path}
+            else
+            	echo "Cannot find gcloud refdb" 1>&2
+            fi
+		fi
+		
         rqcfilter2.sh \
             ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
             -da \
@@ -191,7 +204,7 @@ task rqcfilter {
             barcodefilter=f \
             trimpolyg=5 \
             usejni=f \
-            rqcfilterdata=~{rqcfilterdata} \
+            rqcfilterdata=~{if gcloud_env then gcloud_db_path else rqcfilterdata } \
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
 
