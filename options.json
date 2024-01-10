@@ -1,0 +1,5 @@
+{
+  "use_reference_disks": true,
+  "final_workflow_outputs_dir": "/mnt/disks/data/output",
+  "use_relative_output_paths": true
+}

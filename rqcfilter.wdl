@@ -1,17 +1,20 @@
 workflow nmdc_rqcfilter {
     String  container="bfoster1/img-omics:0.1.9"
+    String  stage_container="mbabinski17/gcputils:0.1"
     String  proj
     String  input_files
+    Boolean gcloud_env=false
     String  database="/refdata/"
 
     call stage {
-        input: container=container,
+        input: container=stage_container,
             input_file=input_files
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
         input: input_files=stage.read,
             threads=16,
+            gcloud_env=gcloud_env,
             database=database,
             memory="60G"
     }
@@ -47,8 +50,12 @@ task stage {
 
    command <<<
        set -e
-       if [ $( echo ${input_file}|egrep -c "https*:") -gt 0 ] ; then
+       # Check if the input file is an HTTP(s) URL
+       if [ $(echo ${input_file} | egrep -c "^https*://") -gt 0 ] ; then
            wget ${input_file} -O ${target}
+       # Check if the input file is a Google Cloud Storage URL
+       elif [ $(echo ${input_file} | egrep -c "^gs://") -gt 0 ] ; then
+           gsutil cp ${input_file} ${target}
        else
            ln ${input_file} ${target} || cp ${input_file} ${target}
        fi
@@ -74,6 +81,10 @@ task rqcfilter {
      File input_files
      String container="microbiomedata/bbtools:38.96"
      String database
+     String rqcfilterdata = database + "/RQCFilterData"
+     Boolean gcloud_env=false
+     String gcloud_db_path = "/cromwell_root/workflows_refdata/refdata/RQCFilterData"
+     Array[File]? gcloud_db= if (gcloud_env) then [database] else []
      Boolean chastityfilter_flag=true
      String? memory
      String? threads
@@ -88,18 +99,55 @@ task rqcfilter {
      String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
 
      runtime {
-            docker: container
-            memory: "70 GB"
-            cpu:  16
-            database: database
-            runtime_minutes: ceil(size(input_files, "GB")*60)
-     }
+        docker: container
+        memory: "70 GB"
+        cpu:  16
+    }
 
-     command<<<
+    command<<<
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
-        rqcfilter2.sh -Xmx${default="60G" memory} -da threads=${jvm_threads} ${chastityfilter} jni=t in=${input_files} path=filtered rna=f trimfragadapter=t qtrim=r trimq=0 maxns=3 maq=3 minlen=51 mlf=0.33 phix=t removehuman=t removedog=t removecat=t removemouse=t khist=t removemicrobes=t sketch kapa=t clumpify=t tmpdir= barcodefilter=f trimpolyg=5 usejni=f rqcfilterdata=${database}/RQCFilterData  > >(tee -a ${filename_outlog}) 2> >(tee -a ${filename_errlog} >&2)
+
+        if ${gcloud_env}; then
+            dbdir=$(find /mnt -type d -name RQCFilterData)
+            if [ -n $dbdir ]; then
+                ln -s $dbdir ${gcloud_db_path}
+            else
+                echo "Cannot find gcloud refdb" 1>&2
+            fi
+        fi
+
+        rqcfilter2.sh -Xmx${default="60G" memory}\
+         -da threads=${jvm_threads} \
+         ${chastityfilter} \
+         jni=t \
+         in=${input_files}\
+         path=filtered \
+         rna=f \
+         trimfragadapter=t \
+         qtrim=r \
+         trimq=0 \
+         maxns=3 \
+         maq=3 \
+         minlen=51 \
+         mlf=0.33 \
+         phix=t \
+         removehuman=t \
+         removedog=t \
+         removecat=t \
+         removemouse=t \
+         khist=t \
+         removemicrobes=t \
+         sketch \
+         kapa=t \
+         clumpify=t \
+         barcodefilter=f \
+         trimpolyg=5 \
+         usejni=f \
+         rqcfilterdata=${gcloud_db_path} \
+          > >(tee -a ${filename_outlog}) \
+          2> >(tee -a ${filename_errlog} >&2)
 
         python <<CODE
         import json
@@ -113,17 +161,17 @@ task rqcfilter {
         with open("${filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-     >>>
-     output {
-            File stdout = filename_outlog
-            File stderr = filename_errlog
-            File stat = filename_stat
-            File stat2 = filename_stat2
-            File info_file = filename_reproduce
-            File filtered = glob("filtered/*fastq.gz")[0]
-            File json_out = filename_stat_json
-            #String start = read_string("start.txt")
-     }
+    >>>
+    output {
+        File stdout = filename_outlog
+        File stderr = filename_errlog
+        File stat = filename_stat
+        File stat2 = filename_stat2
+        File info_file = filename_reproduce
+        File filtered = glob("filtered/*fastq.gz")[0]
+        File json_out = filename_stat_json
+        #String start = read_string("start.txt")
+    }
 }
 
 task make_info_file {
