@@ -19,9 +19,24 @@ ENV JAVA_URL=https://download.java.net/java/GA/jdk13.0.1/cec27d702aa74d5a8630c65
 ENV JAVA_SHA256=2e01716546395694d3fad54c9b36d1cd46c5894c06f72d156772efbcf4b41335
 
 
-RUN apt-get update && apt-get install -y build-essential file python \
-  wget samtools curl && \
-  apt-get autoclean && rm -rf /var/lib/apt/lists/*
+RUN apt-get -y update && apt-get -y install build-essential samtools file python wget curl gnupg lsb-release
+
+RUN apt-get -y install libz-dev
+
+# Set up the repository for Google Cloud SDK
+RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+    apt-get update -y && apt-get install google-cloud-sdk -y
+
+
+# Add gcsfuse distribution URI as a package source
+RUN export GCSFUSE_REPO=gcsfuse-`lsb_release -c -s` && \
+    echo "deb [signed-by=/usr/share/keyrings/cloud.google.asc] https://packages.cloud.google.com/apt $GCSFUSE_REPO main" | tee /etc/apt/sources.list.d/gcsfuse.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | tee /usr/share/keyrings/cloud.google.asc && \
+    apt-get update && apt-get install gcsfuse -y
+
+# # Clean up APT when done
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # openjdk-13-jre \
 RUN /bin/sh -c set -eux; curl -fL -o /openjdk.tgz "$JAVA_URL"; 	echo "$JAVA_SHA256 */openjdk.tgz" | sha256sum -c -; mkdir -p "$JAVA_HOME"; tar --extract --file /openjdk.tgz --directory "$JAVA_HOME" --strip-components 1; rm /openjdk.tgz; ln -sfT "$JAVA_HOME" /usr/java/default; ln -sfT "$JAVA_HOME" /usr/java/latest; for bin in "$JAVA_HOME/bin/"*; do 	base="$(basename "$bin")"; [ ! -e "/usr/bin/$base" ]; 	update-alternatives --install "/usr/bin/$base" "$base" "$bin" 20000; 	done; java -Xshare:dump; java --version; javac --version
