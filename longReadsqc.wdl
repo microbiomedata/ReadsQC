@@ -12,6 +12,8 @@ workflow LongReadsQC{
     Boolean rmdup = true
     Boolean overwrite = true
     File?   reference
+    String  pbmarkdup_container="microbiomedata/pbmarkdup:1.0"
+    String  bbtools_container="microbiomedata/bbtools:39.01"
     # String  outdir 
     # String  prefix = basename(file)
   }
@@ -23,6 +25,7 @@ workflow LongReadsQC{
     # outdir = outdir,
     log_level = log_level,
     rmdup = rmdup,
+    container = pbmarkdup_container,
     overwrite = overwrite
   }
 
@@ -30,6 +33,7 @@ workflow LongReadsQC{
     input:
     in_file = pbmarkdup.out_fastq,
     prefix = prefix,
+    container = bbtools_container
     # outdir = outdir
   }
 
@@ -37,6 +41,7 @@ workflow LongReadsQC{
     input:
     in_file = icecreamfilter.output_good,
     prefix = prefix,
+    container = bbtools_container,
     # outdir = outdir,
     reference = reference
   }
@@ -45,13 +50,14 @@ workflow LongReadsQC{
     input:
     in_file = bbdukEnds.out_fastq,
     prefix = prefix,
+    container = bbtools_container,
     # outdir = outdir,
     reference = reference
   }
 
   output {
-  File out_fastq = bbdukReads.out_fastq
-    }
+    File out_fastq = bbdukReads.out_fastq
+  }
 
 }
 
@@ -63,6 +69,7 @@ task pbmarkdup{
     String?  log_level
     Boolean? rmdup
     Boolean? overwrite
+    String   container
     # String   outdir
     # String   out_file = outdir + "/pbmarkdup.fq"
   }
@@ -85,8 +92,8 @@ task pbmarkdup{
   }
 
   runtime{
-     docker: "microbiomedata/pbmarkdup:1.0"
-        continueOnReturnCode: true
+     docker: container
+     continueOnReturnCode: true
   }
 }
 
@@ -97,6 +104,7 @@ task icecreamfilter{
     String prefix
     String out_bad = prefix + ".icecreamfilter.out_bad.out.gz"
     String out_good = prefix + ".icecreamfilter.out_good.out.gz"
+    String container
     # String outdir
     # String out_bad = outdir + "/" + prefix + ".icecreamfilter.out_bad.out.gz"
     # String out_good = outdir + "/" + prefix + ".icecreamfilter.out_good.out.gz"
@@ -126,8 +134,8 @@ task icecreamfilter{
   }
 
   runtime{
-     docker: "microbiomedata/bbtools:39.01"
-        continueOnReturnCode: true
+     docker: container
+     continueOnReturnCode: true
   }
 }
 
@@ -137,6 +145,7 @@ task bbdukEnds{
     File   in_file
     String prefix
     String out_file = prefix + ".bbdukEnds.out.fq.gz"
+    String container
     # String outdir
     # String out_file = outdir + "/" + prefix + ".bbdukEnds.out.fq.gz"
   }
@@ -162,8 +171,8 @@ task bbdukEnds{
   }
 
   runtime{
-     docker: "microbiomedata/bbtools:39.01"
-        continueOnReturnCode: true
+     docker: container
+     continueOnReturnCode: true
   }
 }
 
@@ -173,6 +182,7 @@ task bbdukReads{
     File   in_file
     String prefix
     String out_file = prefix + ".filtered.fq.gz"
+    String container
     # String outdir
     # String out_file = outdir + "/" + prefix + ".filtered.fq.gz"
     
@@ -196,8 +206,8 @@ task bbdukReads{
   }
 
   runtime{
-     docker: "microbiomedata/bbtools:39.01"
-        continueOnReturnCode: true
+     docker: container
+     continueOnReturnCode: true
   }
 }
 
