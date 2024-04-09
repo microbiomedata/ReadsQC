@@ -4,7 +4,7 @@ workflow nmdc_rqcfilter {
     input{
     String  container="bfoster1/img-omics:0.1.9"
     String  bbtools_container="microbiomedata/bbtools:38.96"
-    String  worflowmeta_container="microbiomedata/workflowmeta:1.1.1"
+    String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
     String  proj
     String  prefix=sub(proj, ":", "_")
     String  input_fastq1
@@ -33,7 +33,7 @@ workflow nmdc_rqcfilter {
     }
 
     call finish_rqc {
-        input: container=worflowmeta_container,
+        input: container=workflowmeta_container,
             prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
