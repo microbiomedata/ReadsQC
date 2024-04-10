@@ -69,6 +69,7 @@ workflow LongReadsQC{
           container = bbtools_container,
           prefix = prefix,
           filtered = bbdukReads.out_fastq,
+          pbmarkdup_stats = pbmarkdup.stats,
           icecream_stats = icecreamfilter.stats,
           bbdukEnds_stats = bbdukEnds.stats,
           bbdukReads_stats = bbdukReads.stats
@@ -80,6 +81,7 @@ workflow LongReadsQC{
     File filtered_stats1 = finish_rqc.filtered_stats_final
     File filtered_stats2 = finish_rqc.filtered_stats2_final
     File filtered_stats3 = finish_rqc.filtered_stats3_final
+    File filtered_stats4 = finish_rqc.filtered_stats4_final
   }
 
 }
@@ -115,6 +117,7 @@ task pbmarkdup{
   output{
     File out_fastq = "~{out_file}.gz"
     File outlog = stdout()
+    File stats = stderr()
   }
 
   runtime{
@@ -273,6 +276,7 @@ task make_info_file{
 
 task finish_rqc {
     input {
+        File   pbmarkdup_stats
         File   icecream_stats
         File   bbdukEnds_stats
         File   bbdukReads_stats
@@ -286,16 +290,18 @@ task finish_rqc {
         end=`date --iso-8601=seconds`
         # Generate QA objects
         ln ~{filtered} ~{prefix}_filtered.fastq.gz
+        ln ~{pbmarkdup_stats} ~{prefix}_pbmarkdupStats.txt
         ln ~{icecream_stats} ~{prefix}_icecreamStats.txt
         ln ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.txt
         ln ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.txt
     >>>
-    
+
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
-        File filtered_stats_final = "~{prefix}_icecreamStats.txt"
-        File filtered_stats2_final = "~{prefix}_bbdukEndsStats.txt"
-        File filtered_stats3_final = "~{prefix}_bbdukReadsStats.txt"
+        File filtered_stats1_final = "~{prefix}_pbmarkdupStats.txt"
+        File filtered_stats2_final = "~{prefix}_icecreamStats.txt"
+        File filtered_stats3_final = "~{prefix}_bbdukEndsStats.txt"
+        File filtered_stats4_final = "~{prefix}_bbdukReadsStats.txt"
     }
 
     runtime {
