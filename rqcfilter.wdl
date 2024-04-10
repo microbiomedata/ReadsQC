@@ -27,10 +27,16 @@ workflow rqcfilter{
         }
     }
     output {
+        # short reads
         File? filtered_final_srqc = ShortReadsQC.filtered_final
         File? filtered_stats_final_srqc = ShortReadsQC.filtered_stats_final
         File? filtered_stats2_final_srqc = ShortReadsQC.filtered_stats2_final
         File? rqc_info_srqc = ShortReadsQC.rqc_info
-        File? out_fastq_lrqc = LongReadsQC.out_fastq
+        # long reads
+        File? filtered_final_lrqc = LongReadsQC.filtered_final
+        File? filtered_stats_final_lrqc = LongReadsQC.filtered_stats1
+        File? filtered_stats2_final_lrqc = LongReadsQC.filtered_stats2
+        File? filtered_stats3_final_lrqc = LongReadsQC.filtered_stats3
+        File? rqc_info_lrqc = LongReadsQC.rqc_info
     }
 }

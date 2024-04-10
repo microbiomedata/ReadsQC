@@ -55,8 +55,31 @@ workflow LongReadsQC{
     reference = reference
   }
 
+  call make_info_file{
+    input:
+      prefix = prefix,
+      pbmarkdup_container=pbmarkdup_container,
+      bbtools_container=bbtools_container, 
+      pbmarkdup_log = pbmarkdup.outlog
+
+  }
+
+  call finish_rqc {
+        input: 
+          container = bbtools_container,
+          prefix = prefix,
+          filtered = bbdukReads.out_fastq,
+          icecream_stats = icecreamfilter.stats,
+          bbdukEnds_stats = bbdukEnds.stats,
+          bbdukReads_stats = bbdukReads.stats
+  }
+
   output {
-    File out_fastq = bbdukReads.out_fastq
+    File rqc_info = make_info_file.rqc_info
+    File filtered_final = finish_rqc.filtered_final
+    File filtered_stats1 = finish_rqc.filtered_stats_final
+    File filtered_stats2 = finish_rqc.filtered_stats2_final
+    File filtered_stats3 = finish_rqc.filtered_stats3_final
   }
 
 }
@@ -75,7 +98,9 @@ task pbmarkdup{
   }
 
   command <<<
+  set -oeu pipefail
   # mkdir -m 755 -p ~{"outdir"}
+  pbmarkdup --version 
   pbmarkdup \
   ~{if (defined(log_level)) then "--log-level " + log_level else  "--log-level INFO"  } \
   ~{true="--rmdup" false="" rmdup} \
@@ -89,6 +114,7 @@ task pbmarkdup{
 
   output{
     File out_fastq = "~{out_file}.gz"
+    File outlog = stdout()
   }
 
   runtime{
@@ -111,7 +137,7 @@ task icecreamfilter{
   }
 
   command <<<
-
+  set -oeu pipefail
   icecreamfinder.sh \
   jni=t \
   json=t \
@@ -151,7 +177,7 @@ task bbdukEnds{
   }
 
   command <<<
-
+  set -oeu pipefail
   # bbduk - trim out adapter from read ends
   bbduk.sh \
   k=20 \
@@ -189,6 +215,7 @@ task bbdukReads{
   }
 
   command <<<
+  set -oeu pipefail
   # bbduk - removes reads that still contain adapter sequence
   bbduk.sh \
   k=24 \
@@ -211,3 +238,69 @@ task bbdukReads{
   }
 }
 
+task make_info_file{
+  input{
+    String prefix
+    String pbmarkdup_container
+    String bbtools_container
+    File pbmarkdup_log
+  }
+  command <<<
+  set -oeu pipefail
+
+  bbtools_version=`grep "Version" /bbmap/README.md | sed 's/#//'`
+  pbmarkdup_version=`grep "pbmarkdup" ~{pbmarkdup_log}`
+
+  echo -e "Long Reads QC Workflow - Info File" > ~{prefix}_readsQC.info
+  echo -e "This workflow performs QC on PacBio metagenome sequencing files and produces filtered fastq files and statistics using the following tools and Docker containers" >> ~{prefix}_readsQC.info
+  echo -e "The file first runs through ${pbmarkdup_version} (https://github.com/PacificBiosciences/pbmarkdup) to remove duplicate reads." >> ~{prefix}_readsQC.info
+  echo -e "The files are then filtered for inverted repeats using icecreamfinder.sh (BBTools(1)${bbtools_version}) before trimming adapters from read ends using bbduk.sh (BBTools(1)${bbtools_version})." >> ~{prefix}_readsQC.info
+  echo -e "Reads are run through bbduk.sh (BBTools(1)${bbtools_version}) a second time to remove any reads still containing adapter sequences." >> ~{prefix}_readsQC.info
+  
+  echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> ~{prefix}_readsQC.info
+  >>>
+
+    output {
+        File rqc_info = "~{prefix}_readsQC.info"
+    }
+    runtime {
+        memory: "1 GiB"
+        cpu:  1
+        maxRetries: 1
+        docker: bbtools_container
+    }
+}
+
+task finish_rqc {
+    input {
+        File   icecream_stats
+        File   bbdukEnds_stats
+        File   bbdukReads_stats
+        File   filtered
+        String container
+        String prefix
+    }
+
+    command<<<
+        set -oeu pipefail
+        end=`date --iso-8601=seconds`
+        # Generate QA objects
+        ln ~{filtered} ~{prefix}_filtered.fastq.gz
+        ln ~{icecream_stats} ~{prefix}_icecreamStats.txt
+        ln ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.txt
+        ln ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.txt
+    >>>
+    
+    output {
+        File filtered_final = "~{prefix}_filtered.fastq.gz"
+        File filtered_stats_final = "~{prefix}_icecreamStats.txt"
+        File filtered_stats2_final = "~{prefix}_bbdukEndsStats.txt"
+        File filtered_stats3_final = "~{prefix}_bbdukReadsStats.txt"
+    }
+
+    runtime {
+        docker: container
+        memory: "1 GiB"
+        cpu:  1
+    }
+}
