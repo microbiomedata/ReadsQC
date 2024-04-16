@@ -289,11 +289,11 @@ task finish_rqc {
         set -oeu pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
-        ln ~{filtered} ~{prefix}_filtered.fastq.gz
-        ln ~{pbmarkdup_stats} ~{prefix}_pbmarkdupStats.txt
-        ln ~{icecream_stats} ~{prefix}_icecreamStats.txt
-        ln ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.txt
-        ln ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.txt
+        ln -s ~{filtered} ~{prefix}_filtered.fastq.gz
+        ln -s ~{pbmarkdup_stats} ~{prefix}_pbmarkdupStats.txt
+        ln -s ~{icecream_stats} ~{prefix}_icecreamStats.txt
+        ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.txt
+        ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.txt
     >>>
 
     output {

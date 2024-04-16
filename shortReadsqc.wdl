@@ -68,11 +68,11 @@ task stage_single {
     }
    command <<<
 
-    set -e
+    set -oeu pipefail
     if [ $( echo ~{input_file}|egrep -c "https*:") -gt 0 ] ; then
         wget ~{input_file} -O ~{target}
     else
-        ln ~{input_file} ~{target} || cp ~{input_file} ~{target}
+        ln -s ~{input_file} ~{target} || cp ~{input_file} ~{target}
     fi
     # Capture the start time
     date --iso-8601=seconds > start.txt
@@ -104,13 +104,13 @@ task stage_interleave {
    }
 
    command <<<
-       set -e
+       set -oeu pipefail
        if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
            wget ~{input_fastq1} -O ~{target_reads_1}
            wget ~{input_fastq2} -O ~{target_reads_2}
        else
-           ln ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
-           ln ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
+           ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
+           ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
        fi
 
        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
@@ -228,6 +228,7 @@ task make_info_file {
     }
 
     command<<<
+        set -oeu pipefail
         sed -n 2,5p ~{info_file} 2>&1 | \
           perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
          ~{prefix}_readsQC.info
@@ -257,12 +258,12 @@ task finish_rqc {
 
     command<<<
 
-        set -e
+        set -oeu pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
-        ln ~{filtered} ~{prefix}_filtered.fastq.gz
-        ln ~{filtered_stats} ~{prefix}_filterStats.txt
-        ln ~{filtered_stats2} ~{prefix}_filterStats2.txt
+        ln -s ~{filtered} ~{prefix}_filtered.fastq.gz
+        ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
+        ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
        # Generate stats but rename some fields untilt the script is fixed.
        /scripts/rqcstats.py ~{filtered_stats} > stats.json
