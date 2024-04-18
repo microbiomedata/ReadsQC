@@ -51,7 +51,7 @@ task stage {
         String input_file
     }
    command <<<
-       set -e
+       set -euo pipefail
        if [ $( echo ~{input_file}|egrep -c "https*:") -gt 0 ] ; then
            wget ~{input_file} -O ~{target}
        else
@@ -104,6 +104,7 @@ task rqcfilter {
     }
 
      command<<<
+     set -euo pipefail
         #sleep 30
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -eo pipefail
@@ -175,6 +176,7 @@ task make_info_file {
     }
     
     command<<<
+    set -euo pipefail
         sed -n 2,5p ~{info_file} 2>&1 | \
           perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
         ~{prefix}_readsQC.info
@@ -211,7 +213,7 @@ task finish_rqc {
  
     command<<<
     
-        set -e
+        set -euo pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
         ln ~{filtered} ~{prefix}_filtered.fastq.gz

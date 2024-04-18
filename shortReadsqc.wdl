@@ -160,7 +160,7 @@ task rqcfilter {
 
      command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
-        set -eo pipefail
+        set -euo pipefail
 
         rqcfilter2.sh \
             ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
