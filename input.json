@@ -1,7 +1,5 @@
 {
-    "nmdc_rqcfilter.database": "/global/cfs/projectdirs/m3408/aim2/database",
-    "nmdc_rqcfilter.input_files": "/global/cfs/cdirs/m3408/ficus/8434.3.102077.AGTTCC.fastq.gz",
-    "nmdc_rqcfilter.proj":"nmdc:xxxxxxx",
-    "nmdc_rqcfilter.resouce":"NERSC -- perlmutter",
-    "nmdc_rqcfilter.informed_by": "nmdc:xxxxxxxx"
+    "rqcfilter.input_files": ["/global/cfs/cdirs/m3408/aim2/dev/vli-testing/ReadsQC/test/incorrect_pairs_R1.fastq.gz", "/global/cfs/cdirs/m3408/aim2/dev/vli-testing/ReadsQC/test/incorrect_pairs_R2.fastq.gz"],
+    "rqcfilter.proj":"nmdc:xxxxxxx",
+    "rqcfilter.shortRead": true
 }
