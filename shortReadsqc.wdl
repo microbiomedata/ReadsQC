@@ -116,6 +116,9 @@ task stage_interleave {
        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
        # Capture the start time
        date --iso-8601=seconds > start.txt
+       
+       # Validate that the read1 and read2 files are sorted correct to interleave
+       reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
 
    >>>
 
@@ -124,7 +127,7 @@ task stage_interleave {
       String start = read_string("start.txt")
    }
    runtime {
-     memory: "1 GiB"
+     memory: "10 GiB"
      cpu:  2
      maxRetries: 1
      docker: container

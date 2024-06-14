@@ -78,7 +78,7 @@ workflow LongReadsQC{
   output {
     File rqc_info = make_info_file.rqc_info
     File filtered_final = finish_rqc.filtered_final
-    File filtered_stats1 = finish_rqc.filtered_stats_final
+    File filtered_stats1 = finish_rqc.filtered_stats1_final
     File filtered_stats2 = finish_rqc.filtered_stats2_final
     File filtered_stats3 = finish_rqc.filtered_stats3_final
     File filtered_stats4 = finish_rqc.filtered_stats4_final
