@@ -7,58 +7,84 @@ workflow ShortReadsQC {
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
-        String prefix=sub(proj, ":", "_")
+        String  prefix=sub(proj, ":", "_")
         Array[String] input_files
+        Array[String] input_fq1
+        Array[String] input_fq2
+        Boolean interleaved
         String  database="/refdata/"
     }
 
-    if (length(input_files) > 1) {
-        call stage_interleave {
-        input:
-            container=bbtools_container,
-            memory="10G",
-            input_fastq1=input_files[0],
-            input_fastq2=input_files[1]
-        }
-    }
-    if (length(input_files) == 1) {
-        call stage_single {
-        input:
-            container=container,
-            input_file = input_files[0]
+    if (interleaved) {
+        scatter(file in input_files) {
+            call stage_single {
+                input:
+                    container = container,
+                    input_file = file
+            }
+            call rqcfilter as rqcInt {
+            input:  
+                input_fastq = stage_single.reads_fastq,
+                container = bbtools_container,
+                threads = "16",
+                database = database,
+                memory = "60G"
+            }
+            call finish_rqc as finrqcInt{
+            input: 
+                container = workflow_container,
+                prefix = stage_single.input_files_prefix[0],
+                filtered = rqcInt.filtered,
+                filtered_stats = rqcInt.stat,
+                filtered_stats2 = rqcInt.stat2
+            }
         }
     }
 
-    # Estimate RQC runtime at an hour per compress GB
-   call rqcfilter as qc {
-        input:
-            input_fastq = if length(input_files) > 1 then stage_interleave.reads_fastq else stage_single.reads_fastq,
-            threads = "16",
-            database = database,
-            memory = "60G",
-            container = bbtools_container
+    if (!interleaved) {
+        scatter(file in zip(input_fq1,input_fq2)){
+            call stage_interleave {
+            input:
+                output_interleaved = basename(file.left) + "_" + basename(file.right),
+                input_fastq1 = file.left,
+                input_fastq2 = file.right,
+                container = bbtools_container,
+                memory="10G"
+            }
+            call rqcfilter as rqcPE {
+            input:  
+                input_fastq = stage_interleave.reads_fastq,
+                container = bbtools_container,
+                threads = "16",
+                database = database,
+                memory = "60G"
+            }
+            call finish_rqc as finrqcPE{
+            input: 
+                container = workflow_container,
+                prefix = stage_interleave.input_files_prefix[0],
+                filtered = rqcPE.filtered,
+                filtered_stats = rqcPE.stat,
+                filtered_stats2 = rqcPE.stat2
+            }
+
+        }
     }
+    
     call make_info_file {
-        input: info_file = qc.info_file,
-            container = container,
-            prefix = prefix
+        input: 
+        info_file = if (interleaved) then select_first([rqcInt.info_file])[0] else select_first([rqcPE.info_file])[0],
+        container = container,
+        prefix = prefix
     }
 
-    call finish_rqc {
-        input: container = workflow_container,
-            prefix = prefix,
-            filtered = qc.filtered,
-            filtered_stats = qc.stat,
-            filtered_stats2 = qc.stat2
-    }
     output {
-        File filtered_final = finish_rqc.filtered_final
-        File filtered_stats_final = finish_rqc.filtered_stats_final
-        File filtered_stats2_final = finish_rqc.filtered_stats2_final
+        Array[File]? filtered_final = if (interleaved) then finrqcInt.filtered_final else finrqcPE.filtered_final
+        Array[File]? filtered_stats_final = if (interleaved) then finrqcInt.filtered_stats_final else finrqcPE.filtered_stats_final
+        Array[File]? filtered_stats2_final = if (interleaved) then finrqcInt.filtered_stats2_final else finrqcPE.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
     }
 }
-
 
 task stage_single {
     input{
@@ -74,6 +100,12 @@ task stage_single {
     else
         ln -s ~{input_file} ~{target} || cp ~{input_file} ~{target}
     fi
+
+    # Create a prefix and save it
+    name=$(basename "~{input_file}")
+    prefix=${name%%.*}
+    echo $prefix > fileprefix.txt
+
     # Capture the start time
     date --iso-8601=seconds > start.txt
 
@@ -82,6 +114,7 @@ task stage_single {
    output{
       File reads_fastq = "~{target}"
       String start = read_string("start.txt")
+      Array[String] input_files_prefix = read_lines("fileprefix.txt")
    }
    runtime {
      memory: "1 GiB"
@@ -98,9 +131,9 @@ task stage_interleave {
     String memory
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw_interleaved.fastq.gz"
     String input_fastq1
     String input_fastq2
+    String output_interleaved
    }
 
    command <<<
@@ -114,17 +147,23 @@ task stage_interleave {
        fi
 
        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
-       # Capture the start time
-       date --iso-8601=seconds > start.txt
+
+        # Create a prefix and save it
+        prefix=$(basename ~{input_fastq1} | sed -E 's/\.(fastq\.gz|fq\.gz|fastq|fq)$//')_$(basename ~{input_fastq2} | sed -E 's/\.(fastq\.gz|fq\.gz|fastq|fq)$//')
+        echo $prefix > fileprefix.txt
+
+        # Capture the start time
+        date --iso-8601=seconds > start.txt
        
-       # Validate that the read1 and read2 files are sorted correct to interleave
-       reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
+        # Validate that the read1 and read2 files are sorted correct to interleave
+        reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
 
    >>>
 
    output{
       File reads_fastq = "~{output_interleaved}"
       String start = read_string("start.txt")
+      Array[String] input_files_prefix = read_lines("fileprefix.txt")
    }
    runtime {
      memory: "10 GiB"
@@ -137,22 +176,22 @@ task stage_interleave {
 
 task rqcfilter {
     input{
-        File? input_fastq
-        String container
-        String database
-        String rqcfilterdata = database + "/RQCFilterData"
+        File    input_fastq
+        String  container
+        String  database
+        String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         String? memory
         String? threads
-        String filename_outlog="stdout.log"
-        String filename_errlog="stderr.log"
-        String filename_stat="filtered/filterStats.txt"
-        String filename_stat2="filtered/filterStats2.txt"
-        String filename_stat_json="filtered/filterStats.json"
-        String filename_reproduce="filtered/reproduce.sh"
-        String system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-        String jvm_threads=select_first([threads,system_cpu])
-        String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String  filename_outlog="stdout.log"
+        String  filename_errlog="stderr.log"
+        String  filename_stat="filtered/filterStats.txt"
+        String  filename_stat2="filtered/filterStats2.txt"
+        String  filename_stat_json="filtered/filterStats.json"
+        String  filename_reproduce="filtered/reproduce.sh"
+        String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
+        String  jvm_threads=select_first([threads,system_cpu])
+        String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
     runtime {
@@ -225,9 +264,9 @@ task rqcfilter {
 
 task make_info_file {
     input{
-        File   info_file
-        String prefix
-        String container
+        File          info_file
+        String        prefix
+        String        container
     }
 
     command<<<
@@ -268,7 +307,7 @@ task finish_rqc {
         ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
-       # Generate stats but rename some fields untilt the script is fixed.
+       # Generate stats but rename some fields until the script is fixed.
        /scripts/rqcstats.py ~{filtered_stats} > stats.json
        cp stats.json ~{prefix}_qa_stats.json
 

@@ -3,17 +3,22 @@ import "shortReadsqc.wdl" as srqc
 import "longReadsqc.wdl" as lrqc
 
 workflow rqcfilter{
-    input{
-    # String  outdir
-    File?   reference
+    input {
     Array[String] input_files
-    String  proj
-    Boolean shortRead 
+    Array[String] input_fq1
+    Array[String] input_fq2
+    File?         reference
+    String        proj
+    Boolean       interleaved
+    Boolean       shortRead
   }
     if (shortRead) {
         call srqc.ShortReadsQC{
             input:
             input_files = input_files,
+            input_fq1 = input_fq1,
+            input_fq2 = input_fq2,
+            interleaved = interleaved,
             proj = proj
         }
     }
@@ -22,15 +27,16 @@ workflow rqcfilter{
             input:
             file = input_files[0],
             proj = proj,
-            # outdir = outdir,
-            reference = reference
+            reference = reference,
+            interleaved = interleaved
         }
     }
+
     output {
         # short reads
-        File? filtered_final_srqc = ShortReadsQC.filtered_final
-        File? filtered_stats_final_srqc = ShortReadsQC.filtered_stats_final
-        File? filtered_stats2_final_srqc = ShortReadsQC.filtered_stats2_final
+        Array[File]? filtered_final_srqc = ShortReadsQC.filtered_final
+        Array[File]? filtered_stats_final_srqc = ShortReadsQC.filtered_stats_final
+        Array[File]? filtered_stats2_final_srqc = ShortReadsQC.filtered_stats2_final
         File? rqc_info_srqc = ShortReadsQC.rqc_info
         # long reads
         File? filtered_final_lrqc = LongReadsQC.filtered_final
