@@ -1,14 +1,14 @@
 {
     "rqcfilter.input_files": [],
     "rqcfilter.input_fq1": [
-        "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R1.fastq.gz",
-        "/global/homes/n/nmdcda/m3408/www/test_data/smalltest.R1.fastq.gz"
+      "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R1.fastq.gz",
+      "/global/homes/n/nmdcda/m3408/www/test_data/smalltest.R1.fastq.gz"
     ],
     "rqcfilter.input_fq2": [
-        "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R2.fastq.gz",
-        "/global/homes/n/nmdcda/m3408/www/test_data/smalltest.R2.fastq.gz"
+      "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R2.fastq.gz",
+      "/global/homes/n/nmdcda/m3408/www/test_data/smalltest.R2.fastq.gz"
     ],
     "rqcfilter.proj": "nmdc:xxxxxxx",
     "rqcfilter.interleaved": false,
     "rqcfilter.shortRead": true
-}
+  }
