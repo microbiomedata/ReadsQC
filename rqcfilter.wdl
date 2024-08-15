@@ -28,7 +28,6 @@ workflow rqcfilter{
             file = input_files[0],
             proj = proj,
             reference = reference,
-            interleaved = interleaved
         }
     }
 

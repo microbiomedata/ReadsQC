@@ -11,7 +11,6 @@ workflow LongReadsQC{
     String  log_level='INFO'
     Boolean rmdup = true
     Boolean overwrite = true
-    Boolean interleaved
     File?   reference
     String  pbmarkdup_container="microbiomedata/pbmarkdup:1.0"
     String  bbtools_container="microbiomedata/bbtools:39.01"
