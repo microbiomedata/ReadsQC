@@ -13,6 +13,7 @@ workflow ShortReadsQC {
         Array[String] input_fq2
         Boolean interleaved
         String  database="/refdata/"
+        Int     rqc_mem = 180
     }
 
     if (interleaved) {
@@ -39,7 +40,7 @@ workflow ShortReadsQC {
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
             threads = "16",
             database = database,
-            memory = "60G",
+            memory = rqc_mem,
             container = bbtools_container
     }
     
@@ -170,7 +171,8 @@ task rqcfilter {
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
-        String? memory
+        Int     memory
+        Int     xmxmem = floor(memory * 0.85)
         String? threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
@@ -185,7 +187,7 @@ task rqcfilter {
 
     runtime {
         docker: container
-        memory: "70 GB"
+        memory: "~{memory} GiB"
         cpu:  16
     }
 
@@ -194,7 +196,7 @@ task rqcfilter {
         set -euo pipefail
 
         rqcfilter2.sh \
-            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
             threads=~{jvm_threads} \
             ~{chastityfilter} \
