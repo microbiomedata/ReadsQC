@@ -188,7 +188,7 @@ task rqcfilter {
     runtime {
         docker: container
         memory: "~{memory} GiB"
-        cpu:  ceil(threads/2)
+        cpu:  16
     }
 
      command<<<
