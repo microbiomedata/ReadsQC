@@ -113,7 +113,7 @@ task stage_interleave {
     String memory
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw_interleaved.fastq.gz"
+    String output_interleaved="raw.fastq.gz"
     Array[String] input_fastq1
     Array[String] input_fastq2
     Int file_num = length(input_fastq1)
@@ -173,7 +173,7 @@ task rqcfilter {
         Boolean chastityfilter_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.85)
-        String? threads
+        Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -188,7 +188,7 @@ task rqcfilter {
     runtime {
         docker: container
         memory: "~{memory} GiB"
-        cpu:  16
+        cpu:  ceil(threads/2)
     }
 
      command<<<
@@ -248,7 +248,7 @@ task rqcfilter {
             File stat = filename_stat
             File stat2 = filename_stat2
             File info_file = filename_reproduce
-            File filtered = glob("filtered/*.anqdpht.fastq.gz")[0]
+            File filtered = "filtered/raw.anqdpht.fastq.gz"
             File json_out = filename_stat_json
      }
 }
