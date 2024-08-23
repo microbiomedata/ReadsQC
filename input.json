@@ -1,5 +1,12 @@
 {
-    "rqcfilter.input_files": ["/global/cfs/cdirs/m3408/aim2/dev/vli-testing/ReadsQC/test/incorrect_pairs_R1.fastq.gz", "/global/cfs/cdirs/m3408/aim2/dev/vli-testing/ReadsQC/test/incorrect_pairs_R2.fastq.gz"],
-    "rqcfilter.proj":"nmdc:xxxxxxx",
+    "rqcfilter.input_files": [],
+    "rqcfilter.input_fq1": [
+      "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R1.fastq.gz"
+    ],
+    "rqcfilter.input_fq2": [
+      "/global/homes/n/nmdcda/m3408/www/test_data/Ecoli_10x-R2.fastq.gz"
+    ],
+    "rqcfilter.proj": "nmdc:xxxxxxx",
+    "rqcfilter.interleaved": false,
     "rqcfilter.shortRead": true
-}
+  }

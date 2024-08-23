@@ -7,50 +7,59 @@ workflow ShortReadsQC {
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
-        String prefix=sub(proj, ":", "_")
+        String  prefix=sub(proj, ":", "_")
         Array[String] input_files
+        Array[String] input_fq1
+        Array[String] input_fq2
+        Boolean interleaved
         String  database="/refdata/"
+        Int     rqc_mem = 180
     }
 
-    if (length(input_files) > 1) {
-        call stage_interleave {
-        input:
-            container=bbtools_container,
-            memory="10G",
-            input_fastq1=input_files[0],
-            input_fastq2=input_files[1]
-        }
-    }
-    if (length(input_files) == 1) {
+    if (interleaved) {
         call stage_single {
-        input:
-            container=container,
-            input_file = input_files[0]
+            input:
+                container = container,
+                input_file = input_files
         }
     }
 
+    if (!interleaved) {
+        call stage_interleave {
+            input:
+                input_fastq1 = input_fq1,
+                input_fastq2 = input_fq2,
+                container = bbtools_container,
+                memory = "10G"
+            }
+    }
+    
     # Estimate RQC runtime at an hour per compress GB
    call rqcfilter as qc {
         input:
-            input_fastq = if length(input_files) > 1 then stage_interleave.reads_fastq else stage_single.reads_fastq,
+            input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
             threads = "16",
             database = database,
-            memory = "60G",
+            memory = rqc_mem,
             container = bbtools_container
     }
+    
     call make_info_file {
-        input: info_file = qc.info_file,
+        input: 
+            info_file = qc.info_file,
             container = container,
             prefix = prefix
     }
 
     call finish_rqc {
-        input: container = workflow_container,
+        input: 
+            container = workflow_container,
             prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
             filtered_stats2 = qc.stat2
     }
+
     output {
         File filtered_final = finish_rqc.filtered_final
         File filtered_stats_final = finish_rqc.filtered_stats_final
@@ -59,21 +68,26 @@ workflow ShortReadsQC {
     }
 }
 
-
 task stage_single {
     input{
         String container
         String target="raw.fastq.gz"
-        String input_file
+        Array[String] input_file
     }
    command <<<
 
     set -oeu pipefail
-    if [ $( echo ~{input_file}|egrep -c "https*:") -gt 0 ] ; then
-        wget ~{input_file} -O ~{target}
-    else
-        ln -s ~{input_file} ~{target} || cp ~{input_file} ~{target}
-    fi
+
+    for file in ~{sep= ' ' input_file}; do
+        temp=$(basename $file)
+        if [ $( echo $file|egrep -c "https*:") -gt 0 ] ; then
+            wget $file -O $temp
+        else
+            ln -s $file $temp || cp $file $temp
+        fi
+        cat $temp >> ~{target}
+    done
+
     # Capture the start time
     date --iso-8601=seconds > start.txt
 
@@ -83,6 +97,7 @@ task stage_single {
       File reads_fastq = "~{target}"
       String start = read_string("start.txt")
    }
+
    runtime {
      memory: "1 GiB"
      cpu:  2
@@ -98,27 +113,41 @@ task stage_interleave {
     String memory
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw_interleaved.fastq.gz"
-    String input_fastq1
-    String input_fastq2
+    String output_interleaved="raw.fastq.gz"
+    Array[String] input_fastq1
+    Array[String] input_fastq2
+    Int file_num = length(input_fastq1)
    }
 
    command <<<
        set -oeu pipefail
-       if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
-           wget ~{input_fastq1} -O ~{target_reads_1}
-           wget ~{input_fastq2} -O ~{target_reads_2}
-       else
-           ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
-           ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
-       fi
-
-       reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
-       # Capture the start time
-       date --iso-8601=seconds > start.txt
        
-       # Validate that the read1 and read2 files are sorted correct to interleave
-       reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
+       # load wdl array to shell array
+       FQ1_ARRAY=(~{sep=" " input_fastq1})
+       FQ2_ARRAY=(~{sep=" " input_fastq2})
+       
+        for (( i = 0; i < ~{file_num}; i++ )) ;do
+            fq1_name=$(basename ${FQ1_ARRAY[$i]})
+            fq2_name=$(basename ${FQ2_ARRAY[$i]})
+            if [ $( echo ${FQ1_ARRAY[$i]} | egrep -c "https*:") -gt 0 ] ; then
+                    wget ${FQ1_ARRAY[$i]} -O $fq1_name
+                    wget ${FQ2_ARRAY[$i]} -O $fq2_name
+            else
+                    ln -s ${FQ1_ARRAY[$i]} $fq1_name || cp ${FQ1_ARRAY[$i]} $fq1_name 
+                    ln -s ${FQ2_ARRAY[$i]} $fq2_name || cp ${FQ2_ARRAY[$i]} $fq2_name
+            fi
+            
+            cat $fq1_name  >> ~{target_reads_1}
+            cat $fq2_name  >> ~{target_reads_2}
+        done
+
+        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+
+        # Validate that the read1 and read2 files are sorted correctly
+        reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
+
+        # Capture the start time
+        date --iso-8601=seconds > start.txt
 
    >>>
 
@@ -126,6 +155,7 @@ task stage_interleave {
       File reads_fastq = "~{output_interleaved}"
       String start = read_string("start.txt")
    }
+
    runtime {
      memory: "10 GiB"
      cpu:  2
@@ -134,30 +164,30 @@ task stage_interleave {
    }
 }
 
-
 task rqcfilter {
     input{
-        File? input_fastq
-        String container
-        String database
-        String rqcfilterdata = database + "/RQCFilterData"
+        File?   input_fastq
+        String  container
+        String  database
+        String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
-        String? memory
-        String? threads
-        String filename_outlog="stdout.log"
-        String filename_errlog="stderr.log"
-        String filename_stat="filtered/filterStats.txt"
-        String filename_stat2="filtered/filterStats2.txt"
-        String filename_stat_json="filtered/filterStats.json"
-        String filename_reproduce="filtered/reproduce.sh"
-        String system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-        String jvm_threads=select_first([threads,system_cpu])
-        String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        Int     memory
+        Int     xmxmem = floor(memory * 0.85)
+        Int?    threads
+        String  filename_outlog="stdout.log"
+        String  filename_errlog="stderr.log"
+        String  filename_stat="filtered/filterStats.txt"
+        String  filename_stat2="filtered/filterStats2.txt"
+        String  filename_stat_json="filtered/filterStats.json"
+        String  filename_reproduce="filtered/reproduce.sh"
+        String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
+        String  jvm_threads=select_first([threads,system_cpu])
+        String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
     runtime {
         docker: container
-        memory: "70 GB"
+        memory: "~{memory} GiB"
         cpu:  16
     }
 
@@ -166,7 +196,7 @@ task rqcfilter {
         set -euo pipefail
 
         rqcfilter2.sh \
-            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
             threads=~{jvm_threads} \
             ~{chastityfilter} \
@@ -218,16 +248,16 @@ task rqcfilter {
             File stat = filename_stat
             File stat2 = filename_stat2
             File info_file = filename_reproduce
-            File filtered = glob("filtered/*fastq.gz")[0]
+            File filtered = "filtered/raw.anqdpht.fastq.gz"
             File json_out = filename_stat_json
      }
 }
 
 task make_info_file {
     input{
-        File   info_file
-        String prefix
-        String container
+        File          info_file
+        String        prefix
+        String        container
     }
 
     command<<<
@@ -268,7 +298,7 @@ task finish_rqc {
         ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
-       # Generate stats but rename some fields untilt the script is fixed.
+       # Generate stats but rename some fields until the script is fixed.
        /scripts/rqcstats.py ~{filtered_stats} > stats.json
        cp stats.json ~{prefix}_qa_stats.json
 
