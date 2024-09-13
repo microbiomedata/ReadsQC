@@ -1,4 +1,4 @@
-Reads QC Workflow (v1.0.2)
+Reads QC Workflow (v1.0.10)
 =============================
 
 .. image:: rqc_workflow.png
@@ -12,6 +12,9 @@ Workflow Overview
 This workflow utilizes the program “rqcfilter2” from BBTools to perform quality control on raw Illumina reads. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using BBDuk), and performs human/cat/dog/mouse/microbe removal (using BBMap).
 
 The following parameters are used for "rqcfilter2" in this workflow::
+ - da         : Disable assertions.
+ - threads    : Set number of threads to use.
+ - rna=false   : Trim Illumina TruSeq-RNA adapters.
  - qtrim=r     :  Quality-trim from right ends before mapping.
  - trimq=0     :  Trim quality threshold.
  - maxns=3     :  Reads with more Ns than this will be discarded.
@@ -27,8 +30,10 @@ The following parameters are used for "rqcfilter2" in this workflow::
  - removedog=true      :  Remove dog reads via mapping.
  - removecat=true      :  Remove cat reads via mapping.
  - removemouse=true    :  Remove mouse reads via mapping.
+ - kapa=true           :  Remove and quantify kapa.
+ - trimpolyg=5         :  Trim reads that start or end with a G polymer at least this long.
  - barcodefilter=false :  Disable improper barcodes filter
- - chastityfilter=false:  Remove illumina reads failing chastity filter.
+ - chastityfilter=true:  Remove illumina reads failing chastity filter.
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 
@@ -99,13 +104,9 @@ Inputs
 A JSON file containing the following information: 
 
 1.	the path to the database
-2.	the path to the interleaved fastq file (input data) 
-3.	the path to the output directory
-4.      input_interleaved (boolean)
-5.      forwards reads fastq file (when input_interleaved is false) 
-6.      reverse reads fastq file (when input_interleaved is false)     
-7.	(optional) parameters for memory 
-8.	(optional) number of threads requested
+2.	the path to the fastq file(s) (input data) 
+3.      project prefix
+4. 	Boolean variable for if the data is short reads
 
 
 An example input JSON file is shown below:
@@ -113,16 +114,12 @@ An example input JSON file is shown below:
 .. code-block:: JSON
 
     {
-        "jgi_rqcfilter.database": "/path/to/refdata",
-        "jgi_rqcfilter.input_files": [
+        "rqcfilter.reference": "/path/to/refdata",
+        "rqcfilter.input_files": [
             "/path/to/SRR7877884-int-0.1.fastq.gz "
         ],
-        "jgi_rqcfilter.input_interleaved": true,
-        "jgi_rqcfilter.input_fq1":[],
-        "jgi_rqcfilter.input_fq2":[],
-        "jgi_rqcfilter.outdir": "/path/to/rqcfiltered",
-        "jgi_rqcfilter.memory": "35G",
-        "jgi_rqcfilter.threads": "16"
+        "rqcfilter.proj": "nmdc:xxx",
+        "rqcfilter.shortRead": true
     }
 
 .. note::
