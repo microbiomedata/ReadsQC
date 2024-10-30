@@ -16,7 +16,7 @@ ENV LC_ALL=C
 # SHELL ["/bin/bash", "-c"] 
 
 #  pbmarkdup install 
-RUN micromamba create -n pbbioconda -y -c bioconda pbmarkdup pbtk \
+RUN micromamba create -n pbbioconda -y -c bioconda -c conda-forge pbmarkdup pbtk seqtk \
     && micromamba clean --all -y \
     && echo "micromamba activate pbbioconda" >> ~/.bashrc
 

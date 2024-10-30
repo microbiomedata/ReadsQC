@@ -12,8 +12,8 @@ workflow LongReadsQC{
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
-        String  pbmarkdup_container="microbiomedata/pbmarkdup:1.0"
-        String  bbtools_container="microbiomedata/bbtools:39.01"
+        String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
+        String  bbtools_container="microbiomedata/bbtools:39.10"
         # String  outdir 
         # String  prefix = basename(file)
     }
@@ -71,7 +71,9 @@ workflow LongReadsQC{
             pbmarkdup_stats = pbmarkdup.stats,
             icecream_stats = icecreamfilter.stats,
             bbdukEnds_stats = bbdukEnds.stats,
-            bbdukReads_stats = bbdukReads.stats
+            bbdukReads_stats = bbdukReads.stats,
+            input_stats = pbmarkdup.input_stats,
+            output_stats = bbdukReads.output_stats
     }
 
     output {
@@ -81,6 +83,7 @@ workflow LongReadsQC{
         File filtered_stats2 = finish_rqc.filtered_stats2_final
         File filtered_stats3 = finish_rqc.filtered_stats3_final
         File filtered_stats4 = finish_rqc.filtered_stats4_final
+        File stats = finish_rqc.stats
         # File filter_stat_json = finish_rqc.json_out
     }
 
@@ -113,12 +116,16 @@ task pbmarkdup{
 
         gzip ~{out_file}
 
+        echo -e "inputReads\tinputBases" > input_size.txt
+        seqtk size ~{in_file} >> input_size.txt
+
     >>>
 
     output{
         File out_fastq = "~{out_file}.gz"
         File outlog = stdout()
         File stats = stderr()
+        Object input_stats = read_object("input_size.txt")
     }
 
     runtime{
@@ -233,11 +240,14 @@ task bbdukReads{
         ~{"in=" + in_file} \
         ~{"out=" + out_file}
 
+        echo -e "outputReads\toutputBases" > output_size.txt
+        seqtk size ~{out_file} >> output_size.txt
     >>>
 
     output{
         File out_fastq = "~{out_file}"
         File stats = "stderr" 
+        Object output_stats = read_object("output_size.txt")
     }
 
     runtime{
@@ -289,10 +299,18 @@ task finish_rqc {
         File   icecream_stats
         File   bbdukEnds_stats
         File   bbdukReads_stats
+        Object input_stats
+        Object output_stats
         File   filtered
         String container
         String prefix
     }
+    Map [String, Int] stats_map = { "inputReads" : input_stats.inputReads, 
+                              "inputBases" : input_stats.inputBases,
+                              "outputReads" : output_stats.outputReads,
+                              "outputBases" : output_stats.outputBases
+                            }
+    File stats_json = write_json(stats_map)
 
     command<<<
 
@@ -301,22 +319,20 @@ task finish_rqc {
         # Generate QA objects
         ln -s ~{filtered} ~{prefix}_filtered.fastq.gz
         ln -s ~{pbmarkdup_stats} ~{prefix}_pbmarkdupStats.txt
-        ln -s ~{icecream_stats} ~{prefix}_icecreamStats.txt
-        ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.txt
-        ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.txt
-
-        # Generate stats but rename some fields until the script is fixed.
-        # /scripts/rqcstats.py ~{icecream_stats} > ~{prefix}_qa_stats.json
+        ln -s ~{icecream_stats} ~{prefix}_icecreamStats.json
+        ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
+        ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
+        ln -s ~{stats_json} ~{prefix}_stats.json
         
     >>>
 
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats1_final = "~{prefix}_pbmarkdupStats.txt"
-        File filtered_stats2_final = "~{prefix}_icecreamStats.txt"
-        File filtered_stats3_final = "~{prefix}_bbdukEndsStats.txt"
-        File filtered_stats4_final = "~{prefix}_bbdukReadsStats.txt"
-        # File json_out = "~{prefix}_qa_stats.json"
+        File filtered_stats2_final = "~{prefix}_icecreamStats.json"
+        File filtered_stats3_final = "~{prefix}_bbdukEndsStats.json"
+        File filtered_stats4_final = "~{prefix}_bbdukReadsStats.json"
+        File stats = "~{prefix}_stats.json"
     }
 
     runtime {
