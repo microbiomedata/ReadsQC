@@ -65,7 +65,7 @@ workflow ShortReadsQC {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
-        File filter_stat_json = finish_rqc.json_out
+        File stats = finish_rqc.json_out
     }
 }
 

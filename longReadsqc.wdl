@@ -3,8 +3,8 @@
 ## output fq.gz
 version 1.0
 
-workflow LongReadsQC{
-    input{
+workflow LongReadsQC {
+    input {
         String  file    
         String  proj
         String  prefix=sub(proj, ":", "_")    
@@ -55,7 +55,7 @@ workflow LongReadsQC{
             reference = reference
     }
 
-    call make_info_file{
+    call make_info_file {
         input:
             prefix = prefix,
             pbmarkdup_container=pbmarkdup_container,
@@ -89,8 +89,8 @@ workflow LongReadsQC{
 
 }
 
-task pbmarkdup{
-    input{
+task pbmarkdup {
+    input {
         String   in_file
         String   prefix
         String   out_file = prefix + ".pbmarkdup.fq"
@@ -121,22 +121,22 @@ task pbmarkdup{
 
     >>>
 
-    output{
+    output {
         File out_fastq = "~{out_file}.gz"
         File outlog = stdout()
         File stats = stderr()
         Object input_stats = read_object("input_size.txt")
     }
 
-    runtime{
+    runtime {
         docker: container
         continueOnReturnCode: true
     }
 }
 
 
-task icecreamfilter{
-    input{
+task icecreamfilter {
+    input {
         File   in_file
         String prefix
         String out_bad = prefix + ".icecreamfilter.out_bad.out.gz"
@@ -165,20 +165,20 @@ task icecreamfilter{
 
     >>>
 
-    output{
+    output {
         File output_good = "~{out_good}"
         File output_bad = "~{out_bad}"
         File stats = "triangle.json"
     }
 
-    runtime{
+    runtime {
         docker: container
         continueOnReturnCode: true
     }
 }
 
-task bbdukEnds{
-    input{
+task bbdukEnds {
+    input {
         File?  reference
         File   in_file
         String prefix
@@ -205,19 +205,19 @@ task bbdukEnds{
 
     >>>
 
-    output{
+    output {
         File out_fastq = "~{out_file}"
         File stats = "stderr"
     }
 
-    runtime{
+    runtime {
         docker: container
         continueOnReturnCode: true
     }
 }
 
-task bbdukReads{
-    input{
+task bbdukReads {
+    input {
         File?  reference
         File   in_file
         String prefix
@@ -244,20 +244,20 @@ task bbdukReads{
         seqtk size ~{out_file} >> output_size.txt
     >>>
 
-    output{
+    output {
         File out_fastq = "~{out_file}"
         File stats = "stderr" 
         Object output_stats = read_object("output_size.txt")
     }
 
-    runtime{
+    runtime {
         docker: container
         continueOnReturnCode: true
     }
 }
 
-task make_info_file{
-    input{
+task make_info_file {
+    input {
         String prefix
         String pbmarkdup_container
         String bbtools_container
@@ -305,11 +305,12 @@ task finish_rqc {
         String container
         String prefix
     }
-    Map [String, Int] stats_map = { "inputReads" : input_stats.inputReads, 
-                              "inputBases" : input_stats.inputBases,
-                              "outputReads" : output_stats.outputReads,
-                              "outputBases" : output_stats.outputBases
-                            }
+    Map [String, Int] stats_map = { 
+                            "output_read_bases" : output_stats.outputBases,
+                            "input_read_count" : input_stats.inputReads, 
+                            "input_read_bases" : input_stats.inputBases,
+                            "output_read_count" : output_stats.outputReads
+                        }
     File stats_json = write_json(stats_map)
 
     command<<<
