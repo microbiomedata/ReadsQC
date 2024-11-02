@@ -323,7 +323,7 @@ task finish_rqc {
         ln -s ~{icecream_stats} ~{prefix}_icecreamStats.json
         ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
         ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
-        ln -s ~{stats_json} ~{prefix}_stats.json
+        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} > ~{prefix}_stats.json
         
     >>>
 
