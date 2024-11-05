@@ -132,7 +132,7 @@ Output
 
 A directory named with the prefix of the FASTQ input file will be created and multiple output files are generated; the main QC FASTQ output is named prefix.anqdpht.fastq.gz. Using the dataset above as an example, the main output would be named SRR7877884-int-0.1.anqdpht.fastq.gz. Other files include statistics on the quality of the data; what was trimmed, detected, and filtered in the data; a status log, and a shell script documenting the steps implemented so the workflow can be reproduced.
 
-An example output JSON file (filterStats.txt) is shown below:
+An example output txt file (filterStats.txt) is shown below:
    
 .. code-block:: text 
     
@@ -148,7 +148,6 @@ An example output JSON file (filterStats.txt) is shown below:
 	kfilteredBases=0
 	outputReads=249398
 	outputBases=37003919
-	
 	gcPolymerRatio=0.165888
 
 
