@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 LABEL base.image="ubuntu:20.04"
 LABEL dockerfile.version="1"
 LABEL software="BBTools"
-LABEL software.version="39.10"
+LABEL software.version="39.03"
 LABEL description="A set of tools labeled as \"Bestus Bioinformaticus\""
 LABEL website="https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/"
 LABEL license="https://jgi.doe.gov/disclaimer/"
@@ -11,7 +11,7 @@ LABEL maintainer="Chienchi Lo"
 LABEL maintainer.email="chienchi@lanl.gov"
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV BBMap_ver=39.10
+ENV BBMap_ver=39.03
 ENV LANG=en_US.UTF-8
 ENV JAVA_HOME=/usr/java/openjdk-13
 ENV PATH=/usr/java/openjdk-13/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

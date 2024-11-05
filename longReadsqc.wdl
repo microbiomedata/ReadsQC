@@ -13,7 +13,7 @@ workflow LongReadsQC {
         Boolean overwrite = true
         File?   reference
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
-        String  bbtools_container="microbiomedata/bbtools:39.10"
+        String  bbtools_container="microbiomedata/bbtools:39.03"
         # String  outdir 
         # String  prefix = basename(file)
     }
@@ -58,7 +58,6 @@ workflow LongReadsQC {
     call make_info_file {
         input:
             prefix = prefix,
-            pbmarkdup_container=pbmarkdup_container,
             bbtools_container=bbtools_container, 
             pbmarkdup_log = pbmarkdup.outlog
     }
@@ -72,8 +71,8 @@ workflow LongReadsQC {
             icecream_stats = icecreamfilter.stats,
             bbdukEnds_stats = bbdukEnds.stats,
             bbdukReads_stats = bbdukReads.stats,
-            input_stats = pbmarkdup.input_stats,
-            output_stats = bbdukReads.output_stats
+            input_stats = flatten(pbmarkdup.input_stats),
+            output_stats = flatten(bbdukReads.output_stats)
     }
 
     output {
@@ -116,8 +115,8 @@ task pbmarkdup {
 
         gzip ~{out_file}
 
-        echo -e "inputReads\tinputBases" > input_size.txt
-        seqtk size ~{in_file} >> input_size.txt
+        #echo -e "inputReads\tinputBases" > input_size.txt
+        seqtk size ~{in_file} > input_size.txt
 
     >>>
 
@@ -125,7 +124,7 @@ task pbmarkdup {
         File out_fastq = "~{out_file}.gz"
         File outlog = stdout()
         File stats = stderr()
-        Object input_stats = read_object("input_size.txt")
+        Array[Array[String]] input_stats = read_tsv("input_size.txt")  
     }
 
     runtime {
@@ -240,14 +239,14 @@ task bbdukReads {
         ~{"in=" + in_file} \
         ~{"out=" + out_file}
 
-        echo -e "outputReads\toutputBases" > output_size.txt
-        seqtk size ~{out_file} >> output_size.txt
+        #echo -e "outputReads\toutputBases" > output_size.txt
+        seqtk size ~{out_file} > output_size.txt
     >>>
 
     output {
         File out_fastq = "~{out_file}"
         File stats = "stderr" 
-        Object output_stats = read_object("output_size.txt")
+        Array[Array[String]] output_stats = read_tsv("output_size.txt")
     }
 
     runtime {
@@ -259,7 +258,6 @@ task bbdukReads {
 task make_info_file {
     input {
         String prefix
-        String pbmarkdup_container
         String bbtools_container
         File pbmarkdup_log
     }
@@ -268,8 +266,8 @@ task make_info_file {
 
         set -oeu pipefail
 
-        bbtools_version=`grep "Version" /bbmap/README.md | sed 's/#//'`
-        pbmarkdup_version=`grep "pbmarkdup" ~{pbmarkdup_log}`
+        bbtools_version=$(grep "Version" /bbmap/README.md | sed 's/#//')
+        pbmarkdup_version=$(grep "pbmarkdup" ~{pbmarkdup_log})
 
         echo -e "Long Reads QC Workflow - Info File" > ~{prefix}_readsQC.info
         echo -e "This workflow performs QC on PacBio metagenome sequencing files and produces filtered fastq files and statistics using the following tools and Docker containers" >> ~{prefix}_readsQC.info
@@ -299,24 +297,24 @@ task finish_rqc {
         File   icecream_stats
         File   bbdukEnds_stats
         File   bbdukReads_stats
-        Object input_stats
-        Object output_stats
+        Array[String] input_stats
+        Array[String]  output_stats
         File   filtered
         String container
         String prefix
     }
     Map [String, Int] stats_map = { 
-                            "output_read_bases" : output_stats.outputBases,
-                            "input_read_count" : input_stats.inputReads, 
-                            "input_read_bases" : input_stats.inputBases,
-                            "output_read_count" : output_stats.outputReads
+                            "input_read_count" : input_stats[0], 
+                            "input_read_bases" : input_stats[1],
+                            "output_read_count" : output_stats[0],
+                            "output_read_bases" : output_stats[1]
                         }
     File stats_json = write_json(stats_map)
 
     command<<<
 
         set -oeu pipefail
-        end=`date --iso-8601=seconds`
+        #end=$(date --iso-8601=seconds)
         # Generate QA objects
         ln -s ~{filtered} ~{prefix}_filtered.fastq.gz
         ln -s ~{pbmarkdup_stats} ~{prefix}_pbmarkdupStats.txt
