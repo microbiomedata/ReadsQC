@@ -14,6 +14,7 @@ workflow LongReadsQC {
         File?   reference
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
         String  bbtools_container="microbiomedata/bbtools:39.03"
+        String  jq_container="microbiomedata/jq:1.6"
         # String  outdir 
         # String  prefix = basename(file)
     }
@@ -64,7 +65,7 @@ workflow LongReadsQC {
 
     call finish_rqc {
         input: 
-            container = bbtools_container,
+            container = jq_container,
             prefix = prefix,
             filtered = bbdukReads.out_fastq,
             pbmarkdup_stats = pbmarkdup.stats,
@@ -321,7 +322,7 @@ task finish_rqc {
         ln -s ~{icecream_stats} ~{prefix}_icecreamStats.json
         ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
         ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
-        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} > ~{prefix}_stats.json
+        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq > ~{prefix}_stats.json
         
     >>>
 
