@@ -36,7 +36,6 @@ workflow rqcfilter{
         File? filtered_final_srqc = ShortReadsQC.filtered_final
         File? filtered_stats_final_srqc = ShortReadsQC.filtered_stats_final
         File? filtered_stats2_final_srqc = ShortReadsQC.filtered_stats2_final
-        File? filtered_stats_json_srqc = ShortReadsQC.filter_stat_json
         File? rqc_info_srqc = ShortReadsQC.rqc_info
         # long reads
         File? filtered_final_lrqc = LongReadsQC.filtered_final
@@ -44,5 +43,8 @@ workflow rqcfilter{
         File? filtered_stats2_final_lrqc = LongReadsQC.filtered_stats2
         File? filtered_stats3_final_lrqc = LongReadsQC.filtered_stats3
         File? rqc_info_lrqc = LongReadsQC.rqc_info
+
+        # both
+        File? stats = if (shortRead) then ShortReadsQC.stats else LongReadsQC.stats
     }
 }

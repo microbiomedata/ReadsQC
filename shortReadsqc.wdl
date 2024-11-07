@@ -65,7 +65,7 @@ workflow ShortReadsQC {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
-        File filter_stat_json = qc.json_out
+        File stats = finish_rqc.json_out
     }
 }
 
@@ -250,7 +250,6 @@ task rqcfilter {
             File stat2 = filename_stat2
             File info_file = filename_reproduce
             File filtered = "filtered/raw.anqdpht.fastq.gz"
-            File json_out = filename_stat_json
      }
 }
 
@@ -300,14 +299,14 @@ task finish_rqc {
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
        # Generate stats but rename some fields until the script is fixed.
-       /scripts/rqcstats.py ~{filtered_stats} > stats.json
-       cp stats.json ~{prefix}_qa_stats.json
+       /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
 
     >>>
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
         File filtered_stats2_final = "~{prefix}_filterStats2.txt"
+        File json_out = "~{prefix}_qa_stats.json"
     }
 
     runtime {

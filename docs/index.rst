@@ -1,4 +1,4 @@
-Reads QC Workflow (v1.0.2)
+Reads QC Workflow (v1.0.12)
 =============================
 
 .. image:: rqc_workflow.png
@@ -9,7 +9,7 @@ Reads QC Workflow (v1.0.2)
 Workflow Overview
 -----------------
 
-This workflow utilizes the program “rqcfilter2” from BBTools to perform quality control on raw Illumina reads. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using BBDuk), and performs human/cat/dog/mouse/microbe removal (using BBMap).
+This workflow utilizes the program “rqcfilter2” from BBTools to perform quality control on raw Illumina reads for **shortreads** and raw PacBio reads for **longreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using BBDuk), and performs human/cat/dog/mouse/microbe removal (using BBMap).
 
 The following parameters are used for "rqcfilter2" in this workflow::
  - qtrim=r     :  Quality-trim from right ends before mapping.
@@ -98,37 +98,33 @@ Inputs
 
 A JSON file containing the following information: 
 
-1.	the path to the database
-2.	the path to the interleaved fastq file (input data) 
-3.	the path to the output directory
-4.      input_interleaved (boolean)
-5.      forwards reads fastq file (when input_interleaved is false) 
-6.      reverse reads fastq file (when input_interleaved is false)     
-7.	(optional) parameters for memory 
-8.	(optional) number of threads requested
+1.	the path to the interleaved fastq file (longreads and shortreads) 
+2.	forwards reads fastq file (when input_interleaved is false)
+3.	reverse reads fastq file (when input_interleaved is false)  
+4.	project id
+5.      if the input is interleaved (boolean) 
+6.	if the input is shortreads (boolean)
 
 
 An example input JSON file is shown below:
+**Short Reads, Interleaved**
 
 .. code-block:: JSON
 
     {
-        "jgi_rqcfilter.database": "/path/to/refdata",
-        "jgi_rqcfilter.input_files": [
-            "/path/to/SRR7877884-int-0.1.fastq.gz "
-        ],
-        "jgi_rqcfilter.input_interleaved": true,
-        "jgi_rqcfilter.input_fq1":[],
-        "jgi_rqcfilter.input_fq2":[],
-        "jgi_rqcfilter.outdir": "/path/to/rqcfiltered",
-        "jgi_rqcfilter.memory": "35G",
-        "jgi_rqcfilter.threads": "16"
+	"rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.int.fastq.gz"],
+    	"rqcfilter.input_fq1": [],
+    	"rqcfilter.input_fq2": [],
+    	"rqcfilter.proj": "nmdc:xxxxxxx",
+   	"rqcfilter.interleaved": true,
+    	"rqcfilter.shortRead": true
     }
 
 .. note::
 
-    In an HPC environment, parallel processing allows for processing multiple samples. The "jgi_rqcfilter.input_files" parameter is an array data structure. It can be used for multiple samples as input separated by a comma (,).
-    Ex: "jgi_rqcfilter.input_files":[“first-int.fastq”,”second-int.fastq”]
+    In an HPC environment, parallel processing allows for processing multiple samples, both interleaved and noninterleaved for **shortreads**. The "rqcfilter.input_files" parameter is an array data structure. It can be used for multiple samples as input separated by a comma (,).
+    
+    Ex: **Interleaved**: "rqcfilter.input_files":[“first-int.fastq”,”second-int.fastq”]; **Non-Interleaved**: "rqcfilter.input_fq1": [“first-int-R1.fastq”,”second-int-R1.fastq”], "rqcfilter.input_fq2": [“first-int-R2.fastq”,”second-int-R2.fastq”]
 
 
 Output
@@ -136,25 +132,23 @@ Output
 
 A directory named with the prefix of the FASTQ input file will be created and multiple output files are generated; the main QC FASTQ output is named prefix.anqdpht.fastq.gz. Using the dataset above as an example, the main output would be named SRR7877884-int-0.1.anqdpht.fastq.gz. Other files include statistics on the quality of the data; what was trimmed, detected, and filtered in the data; a status log, and a shell script documenting the steps implemented so the workflow can be reproduced.
 
-An example output JSON file (filterStats.json) is shown below:
+An example output txt file (filterStats.txt) is shown below:
    
-.. code-block:: JSON 
+.. code-block:: text 
     
-	{
-	  "inputReads": 331126,
-	  "kfilteredBases": 138732,
-	  "qfilteredReads": 0,
-	  "ktrimmedReads": 478,
-	  "outputBases": 1680724,
-	  "ktrimmedBases": 25248,
-	  "kfilteredReads": 926,
-	  "qtrimmedBases": 0,
-	  "outputReads": 11212,
-	  "gcPolymerRatio": 0.182857,
-	  "inputBases": 50000026,
-	  "qtrimmedReads": 0,
-	  "qfilteredBases": 0
-	}
+	inputReads=250000
+	inputBases=37109226
+	qtrimmedReads=0
+	qtrimmedBases=0
+	qfilteredReads=208
+	qfilteredBases=10798
+	ktrimmedReads=456
+	ktrimmedBases=7726
+	kfilteredReads=0
+	kfilteredBases=0
+	outputReads=249398
+	outputBases=37003919
+	gcPolymerRatio=0.165888
 
 
 Below is an example of all the output directory files with descriptions to the right.
@@ -162,15 +156,17 @@ Below is an example of all the output directory files with descriptions to the r
 ==================================== ============================================================================
 FileName                              Description
 ==================================== ============================================================================
-SRR7877884-int-0.1.anqdpht.fastq.gz   main output (clean data)       
+nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
+nmdc_xxxxxxx_filterStats.txt	      summary statistics 
+nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
+nmdc_xxxxxxx_readsQC.info	      summary of parameters used in BBTools rqcfilter2
+nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
+
 adaptersDetected.fa                   adapters detected and removed        
 bhist.txt                             base composition histogram by position 
 cardinality.txt                       estimation of the number of unique kmers 
 commonMicrobes.txt                    detected common microbes 
 file-list.txt                         output file list for rqcfilter2.sh 
-filterStats.txt                       summary statistics 
-filterStats.json                      summary statistics in JSON format 
-filterStats2.txt                      more detailed summary statistics 
 gchist.txt                            GC content histogram 
 human.fq.gz                           detected human sequence reads 
 ihist_merge.txt                       insert size histogram 
@@ -199,7 +195,7 @@ synth2.fq.gz                          detected synthetic molecule (short contami
 Version History
 ---------------
 
-- 1.0.2 (release date **04/09/2021**; previous versions: 1.0.1)
+- 1.0.12 (release date **09/30/2024**; previous versions: 1.0.11)
 
 
 Point of contact
