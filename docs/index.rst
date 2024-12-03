@@ -119,7 +119,7 @@ Sample dataset(s)
 
 **Long Reads:**
 
-Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/project/m3408//test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_) For testing we have subsampled the dataset, the original dataset is ~18GB.
+Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_) For testing we have subsampled the dataset, the original dataset is ~18GB.
 
 Input
 ------
@@ -140,7 +140,7 @@ An example input JSON file is shown below:
 .. code-block:: JSON
 
     {
-	"rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.int.fastq.gz"],
+	"rqcfilter.input_files": ["https://portal.nersc.gov/cfs/m3408/test_data/smalltest.int.fastq.gz"],
     	"rqcfilter.input_fq1": [],
     	"rqcfilter.input_fq2": [],
     	"rqcfilter.proj": "nmdc:xxxxxxx",
@@ -153,9 +153,9 @@ An example input JSON file is shown below:
     In an HPC environment, parallel processing allows for processing multiple samples, both interleaved and noninterleaved for **shortreads**. The "rqcfilter.input_files" parameter is an array data structure. It can be used for multiple samples as input separated by a comma (,).
     
     Example: 
-	**Interleaved**: "rqcfilter.input_files":[“first-int.fastq”,”second-int.fastq”]; 
+	**Interleaved**: :literal:`"rqcfilter.input_files": ["first-int.fastq","second-int.fastq"]`
 
-	**Non-Interleaved**: "rqcfilter.input_fq1": [“first-int-R1.fastq”,”second-int-R1.fastq”], "rqcfilter.input_fq2": [“first-int-R2.fastq”,”second-int-R2.fastq”]
+	**Non-Interleaved**: :literal:`"rqcfilter.input_fq1": ["first-int-R1.fastq","second-int-R1.fastq"], "rqcfilter.input_fq2": ["first-int-R2.fastq","second-int-R2.fastq"]`
 
 
 Output
