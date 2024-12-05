@@ -3,7 +3,6 @@ Reads QC Workflow (v1.0.13)
 
 .. image:: lrrqc_workflow2024.svg
    :align: center
-   :scale: 50%
 
 
 Workflow Overview
