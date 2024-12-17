@@ -4,9 +4,9 @@ import "longReadsqc.wdl" as lrqc
 
 workflow rqcfilter{
     input {
-    Array[String] input_files
-    Array[String] input_fq1
-    Array[String] input_fq2
+    Array[File] input_files
+    Array[File] input_fq1
+    Array[File] input_fq2
     File?         reference
     String        proj
     Boolean       interleaved

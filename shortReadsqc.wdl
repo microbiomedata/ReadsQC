@@ -8,9 +8,9 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[String] input_files
-        Array[String] input_fq1
-        Array[String] input_fq2
+        Array[File] input_files
+        Array[File] input_fq1
+        Array[File] input_fq2
         Boolean interleaved
         String  database="/refdata/"
         Int     rqc_mem = 180
@@ -73,7 +73,7 @@ task stage_single {
     input{
         String container
         String target="raw.fastq.gz"
-        Array[String] input_file
+        Array[File] input_file
     }
    command <<<
 
@@ -115,8 +115,8 @@ task stage_interleave {
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
     String output_interleaved="raw.fastq.gz"
-    Array[String] input_fastq1
-    Array[String] input_fastq2
+    Array[File] input_fastq1
+    Array[File] input_fastq2
     Int file_num = length(input_fastq1)
    }
 
