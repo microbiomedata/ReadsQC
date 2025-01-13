@@ -60,7 +60,7 @@ workflow LongReadsQC {
         input:
             prefix = prefix,
             bbtools_container=bbtools_container, 
-            pbmarkdup_log = pbmarkdup.outlog
+            pbmarkdup_log = pbmarkdup.stats
     }
 
     call finish_rqc {
@@ -81,8 +81,6 @@ workflow LongReadsQC {
         File filtered_final = finish_rqc.filtered_final
         File filtered_stats1 = finish_rqc.filtered_stats1_final
         File filtered_stats2 = finish_rqc.filtered_stats2_final
-        File filtered_stats3 = finish_rqc.filtered_stats3_final
-        File filtered_stats4 = finish_rqc.filtered_stats4_final
         File stats = finish_rqc.stats
         # File filter_stat_json = finish_rqc.json_out
     }
@@ -115,7 +113,6 @@ task pbmarkdup {
         ~{out_file}
 
         gzip ~{out_file}
-
         #echo -e "inputReads\tinputBases" > input_size.txt
         seqtk size ~{in_file} > input_size.txt
 
@@ -123,10 +120,9 @@ task pbmarkdup {
 
     output {
         File out_fastq = "~{out_file}.gz"
-        File outlog = stdout()
-        File stats = stderr()
-        Array[Array[String]] input_stats = read_tsv("input_size.txt")  
-    }
+        File outlog = 'stderr'
+        File stats = 'stdout'
+        Array[Array[String]] input_stats = read_tsv("input_size.txt")      }
 
     runtime {
         docker: container
@@ -201,13 +197,15 @@ task bbdukEnds {
         json=t \
         ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
         ~{"in=" + in_file} \
-        ~{"out=" + out_file}
+        ~{"out=" + out_file} 
+        
+        grep -v _JAVA_OPTIONS stderr > bbdukEnds_stats.json
 
     >>>
 
     output {
         File out_fastq = "~{out_file}"
-        File stats = "stderr"
+        File stats = "bbdukEnds_stats.json"
     }
 
     runtime {
@@ -238,7 +236,9 @@ task bbdukReads {
         json=t \
         ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
         ~{"in=" + in_file} \
-        ~{"out=" + out_file}
+        ~{"out=" + out_file} 
+        
+        grep -v _JAVA_OPTIONS stderr >  bbdukReads_stats.json
 
         #echo -e "outputReads\toutputBases" > output_size.txt
         seqtk size ~{out_file} > output_size.txt
@@ -246,7 +246,7 @@ task bbdukReads {
 
     output {
         File out_fastq = "~{out_file}"
-        File stats = "stderr" 
+        File stats = "bbdukReads_stats.json" 
         Array[Array[String]] output_stats = read_tsv("output_size.txt")
     }
 
@@ -322,16 +322,20 @@ task finish_rqc {
         ln -s ~{icecream_stats} ~{prefix}_icecreamStats.json
         ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
         ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
+        
         sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq > ~{prefix}_stats.json
         
+        DUP=`grep TOTAL ~{prefix}_pbmarkdupStats.txt | awk  '{print $5}'`
+        INVERTED=`jq .Reads_Filtered ~{prefix}_icecreamStats.json`
+        ADAPTER1=`jq .readsRemoved ~{prefix}_bbdukEndsStats.json`
+        ADAPTER2=`jq .readsRemoved ~{prefix}_bbdukReadsStats.json`
+        jq ".Input=.input_read_count | del(.input_read_count, .input_read_bases) | .Output=.output_read_count | del(.output_read_count, .output_read_bases) | .Duplication=$DUP | .Inverted=$INVERTED | .Adapter=$ADAPTER1+$ADAPTER2 "  ~{prefix}_stats.json > ~{prefix}_filterStats2.json
     >>>
 
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats1_final = "~{prefix}_pbmarkdupStats.txt"
-        File filtered_stats2_final = "~{prefix}_icecreamStats.json"
-        File filtered_stats3_final = "~{prefix}_bbdukEndsStats.json"
-        File filtered_stats4_final = "~{prefix}_bbdukReadsStats.json"
+        File filtered_stats2_final = "~{prefix}_filterStats2.json"
         File stats = "~{prefix}_stats.json"
     }
 
