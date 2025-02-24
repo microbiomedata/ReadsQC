@@ -38,7 +38,7 @@ jobs:
                   context: .
                   file: Docker/BBtools_Dockerfile.txt
                   push: true
-                  tags: ${{ steps.get_version.outputs }}
+                  tags: ${{ steps.get_version.outputs.* }}
 
 # References:
 # - https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values
