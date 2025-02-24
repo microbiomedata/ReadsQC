@@ -36,7 +36,7 @@ jobs:
               uses: docker/build-push-action@v5
               with:
                   context: .
-                  file: Docker/BBtools_Dockerfile.txt
+                  file: Docker/pbmarkdup_Dockerfile.txt
                   push: true
                   tags: ghcr.io/microbiomedata/nmdc-pbmarkdup:${{ steps.get_version.outputs.version }}
 
