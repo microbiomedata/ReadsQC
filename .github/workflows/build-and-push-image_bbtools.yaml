@@ -2,6 +2,7 @@ name: Build and push container image to GHCR
 
 # Run this workflow whenever a Dockerfile is updated.
 on:
+    workflow_dispatch:
     push:
         branches:
             - master
