@@ -1,4 +1,4 @@
-name: Build and push pbmarkdup container image to GHCR
+name: Build and push fastqc_vis container image to GHCR
 
 # Run this workflow whenever a Dockerfile is updated.
 on:
