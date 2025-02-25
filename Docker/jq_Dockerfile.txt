@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV jq_ver=1.6
 ENV LANG=en_US.UTF-8
 
-RUN apt-get update && apt-get install -y jq=$jq_ver && \
+RUN apt-get update && apt-get install -y jq=${jq_ver}-1ubuntu0.20.04.1 && \
   apt-get autoclean && rm -rf /var/lib/apt/lists/*
 
 ENV LC_ALL=C
