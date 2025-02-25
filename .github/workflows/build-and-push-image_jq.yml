@@ -18,7 +18,7 @@ jobs:
             - name: Get Version
               id: get_version
               run: |
-                  VERSION=$(grep "jq_ver=" Docker/pbmarkdup_Dockerfile.txt  | cut -d"=" -f 2)
+                  VERSION=$(grep "jq_ver=" Docker/jq_Dockerfile.txt  | cut -d"=" -f 2)
                   echo "version=${VERSION}" >> $GITHUB_OUTPUT
             - name: Authenticate with container registry
               uses: docker/login-action@v3
@@ -38,7 +38,7 @@ jobs:
                   context: .
                   file: Docker/jq_Dockerfile.txt
                   push: true
-                  tags: ghcr.io/microbiomedata/nmdc-pbmarkdup:${{ steps.get_version.outputs.version }}
+                  tags: ghcr.io/microbiomedata/nmdc-jq:${{ steps.get_version.outputs.version }}
 
 # References:
 # - https://docs.github.com/en/actions/learn-github-actions/variables#using-the-vars-context-to-access-configuration-variable-values
