@@ -1,0 +1,29 @@
+FROM mambaorg/micromamba:latest
+
+LABEL base.image="mambaorg/micromamba:latest"
+LABEL version="1.1.0"
+LABEL description="fastq QC report generation"
+LABEL maintainer="Chienchi Lo"
+LABEL maintainer.email="chienchi@lanl.gov"
+
+ENV container=docker
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=C
+ENV conda_env="fastqc"
+# SHELL ["/bin/bash", "-c"] 
+
+# fastqc multiqc install 
+RUN micromamba create -n $conda_env -y -c conda-forge -c bioconda fastqc multiqc pandas plotly \
+    && micromamba clean --all -y \
+    && echo "micromamba activate $conda_env" >> ~/.bashrc
+
+ADD *py  /opt/conda/envs/$conda_env/bin/
+
+ENV PATH="/opt/conda/envs/$conda_env/bin:$PATH"
+
+
+
+WORKDIR /data
+
+CMD ["/bin/bash"]
