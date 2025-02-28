@@ -23,7 +23,6 @@ ADD Docker/*py  /opt/conda/envs/$conda_env/bin/
 ENV PATH="/opt/conda/envs/$conda_env/bin:$PATH"
 
 
-
 WORKDIR /data
 
 CMD ["/bin/bash"]
