@@ -18,7 +18,7 @@ RUN micromamba create -n $conda_env -y -c conda-forge -c bioconda fastqc multiqc
     && micromamba clean --all -y \
     && echo "micromamba activate $conda_env" >> ~/.bashrc
 
-ADD *py  /opt/conda/envs/$conda_env/bin/
+ADD Docker/*py  /opt/conda/envs/$conda_env/bin/
 
 ENV PATH="/opt/conda/envs/$conda_env/bin:$PATH"
 
