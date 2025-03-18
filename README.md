@@ -71,4 +71,4 @@ The main QC fastq output is named by prefix.anqdpht.fast.gz.
 ```
 
 ## Link to Doc Site
-Please refer [here](https://nmdc-workflow-documentation.readthedocs.io/en/latest/chapters/1_RQC_index.html) for more information.
+Please refer [here](https://docs.microbiomedata.org/workflows/chapters/3_Metagenome_Reads_QC/) for more information.
