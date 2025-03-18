@@ -186,13 +186,8 @@ task rqcfilter {
         String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
-    runtime {
-        docker: container
-        memory: "~{memory} GiB"
-        cpu:  16
-    }
+    command <<<
 
-     command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 
@@ -241,16 +236,23 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-        >>>
 
-     output {
-            File stdout = filename_outlog
-            File stderr = filename_errlog
-            File stat = filename_stat
-            File stat2 = filename_stat2
-            File info_file = filename_reproduce
-            File filtered = "filtered/raw.anqdpht.fastq.gz"
-     }
+    >>>
+
+    output {
+        File stdout = filename_outlog
+        File stderr = filename_errlog
+        File stat = filename_stat
+        File stat2 = filename_stat2
+        File info_file = filename_reproduce
+        File filtered = "filtered/raw.anqdpht.fastq.gz"
+    }
+    
+    runtime {
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  16
+    }
 }
 
 task make_info_file {
