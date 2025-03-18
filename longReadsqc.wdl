@@ -5,7 +5,7 @@ version 1.0
 
 workflow LongReadsQC {
     input {
-        String  file    
+        File  file    
         String  proj
         String  prefix=sub(proj, ":", "_")    
         String  log_level='INFO'
@@ -89,7 +89,7 @@ workflow LongReadsQC {
 
 task pbmarkdup {
     input {
-        String   in_file
+        File   in_file
         String   prefix
         String   out_file = prefix + ".pbmarkdup.fq"
         String?  log_level
