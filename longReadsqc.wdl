@@ -125,6 +125,8 @@ task pbmarkdup {
         Array[Array[String]] input_stats = read_tsv("input_size.txt")      }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -168,6 +170,8 @@ task icecreamfilter {
     }
 
     runtime {
+        memory: "16 GiB"
+        cpu: 2
         docker: container
         continueOnReturnCode: true
     }
@@ -209,6 +213,8 @@ task bbdukEnds {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -251,6 +257,8 @@ task bbdukReads {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
