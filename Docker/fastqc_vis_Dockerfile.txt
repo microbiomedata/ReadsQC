@@ -1,7 +1,7 @@
 FROM mambaorg/micromamba:latest
 
 LABEL base.image="mambaorg/micromamba:latest"
-LABEL version="1.1.0"
+LABEL version="1.1.1"
 LABEL description="fastq QC report generation"
 LABEL maintainer="Chienchi Lo"
 LABEL maintainer.email="chienchi@lanl.gov"

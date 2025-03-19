@@ -13,7 +13,7 @@ def is_json(myjson):
     try:
         with open(myjson) as f:
             data= json.load(f)
-    except json.JSONDecodeError as e:
+    except (json.JSONDecodeError, FileNotFoundError) as e:
         data = None
     return data
 
@@ -34,9 +34,13 @@ df = None
 if data:
     stats = data
 else:  
-    df=pd.read_csv(input_f,sep="\t")
-
-if df:
+    try:
+        df = pd.read_csv(input_f, sep="\t")
+    except FileNotFoundError:
+        print(f"File {input_f} not found.")
+        exit(1)
+        
+if df is not None:
     fig = make_subplots(rows=1, cols=2, column_widths=[0.15, 0.85])
     top2 = df.head(2)
     filters_df = df.iloc[2:]
@@ -58,7 +62,7 @@ if df:
                         row=1,col=2)
     
 
-if stats:
+if stats is not None:
     input_output_data = {key: stats[key] for key in ["Input", "Output"]}
     other_data = {key: stats[key] for key in stats if key not in ["Input", "Output"]}
     fig = make_subplots(rows=1, cols=2, column_widths=[0.40, 0.60])
