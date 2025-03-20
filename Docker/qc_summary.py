@@ -31,6 +31,8 @@ input_f = args.input
 
 data  = is_json(input_f)
 df = None
+stats = None
+
 if data:
     stats = data
 else:  
