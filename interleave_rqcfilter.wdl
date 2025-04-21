@@ -15,7 +15,7 @@ workflow nmdc_rqcfilter {
     call stage {
         input: 
             container=bbtools_container,
-            memory="10G",
+            memory="10 GB",
             input_fastq1=input_fastq1,
             input_fastq2=input_fastq2
     }
@@ -25,7 +25,7 @@ workflow nmdc_rqcfilter {
             input_files=stage.interleaved_reads,
             threads="16",
             database=database,
-            memory="180G",
+            memory="180 GB",
             container = bbtools_container
     }
     call make_info_file {
@@ -233,7 +233,7 @@ task finish_rqc {
        cp stats.json ~{prefix}_qa_stats.json
 
     >>>
-    
+
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
