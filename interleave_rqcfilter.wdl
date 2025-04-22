@@ -10,6 +10,7 @@ workflow nmdc_rqcfilter {
         String  input_fastq1
         String  input_fastq2
         String  database="/refdata/"
+        Int     rqc_mem = 180
     }
 
     call stage {
@@ -25,7 +26,7 @@ workflow nmdc_rqcfilter {
             input_files=stage.interleaved_reads,
             threads="16",
             database=database,
-            memory="180 GB",
+            memory=rqc_mem,
             container = bbtools_container
     }
     call make_info_file {
@@ -98,7 +99,8 @@ task rqcfilter {
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
-        String? memory
+        Int     memory
+        Int     xmxmem = floor(memory * 0.85)
         String? threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
@@ -116,7 +118,7 @@ task rqcfilter {
         set -euo pipefail
 
         rqcfilter2.sh \
-            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
             threads=~{jvm_threads} \
             ~{chastityfilter} \
@@ -174,7 +176,7 @@ task rqcfilter {
 
     runtime {
         docker: container
-        memory: memory
+        memory: "~{memory} GiB"
         cpu:  16
     }
 }
