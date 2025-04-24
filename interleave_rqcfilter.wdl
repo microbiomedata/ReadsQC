@@ -16,7 +16,7 @@ workflow nmdc_rqcfilter {
     call stage {
         input: 
             container=bbtools_container,
-            memory="10 GB",
+            memory=10,
             input_fastq1=input_fastq1,
             input_fastq2=input_fastq2
     }
@@ -24,7 +24,7 @@ workflow nmdc_rqcfilter {
     call rqcfilter as qc {
         input: 
             input_files=stage.interleaved_reads,
-            threads="16",
+            threads=16,
             database=database,
             memory=rqc_mem,
             container = bbtools_container
@@ -55,7 +55,7 @@ workflow nmdc_rqcfilter {
 task stage {
    input {
         String container
-        String memory
+        Int    memory
         String target_reads_1="raw_reads_1.fastq.gz"
         String target_reads_2="raw_reads_2.fastq.gz"
         String output_interleaved="raw_interleaved.fastq.gz"
@@ -73,7 +73,7 @@ task stage {
            ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
        fi
 
-       reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+       reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
        # Capture the start time
        date --iso-8601=seconds > start.txt
    >>>
@@ -84,7 +84,7 @@ task stage {
    }
 
    runtime {
-     memory: memory
+     memory: "~{memory} GiB"
      cpu:  2
      maxRetries: 1
      docker: container
@@ -100,8 +100,8 @@ task rqcfilter {
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Int     memory
-        Int     xmxmem = floor(memory * 0.85)
-        String? threads
+        Int     xmxmem = floor(memory * 0.75)
+        Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -113,7 +113,7 @@ task rqcfilter {
         String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
-    command<<<
+    command <<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 

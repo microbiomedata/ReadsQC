@@ -30,7 +30,7 @@ workflow ShortReadsQC {
                 input_fastq1 = input_fq1,
                 input_fastq2 = input_fq2,
                 container = bbtools_container,
-                memory = "10G"
+                memory = 10
             }
     }
     
@@ -38,7 +38,7 @@ workflow ShortReadsQC {
    call rqcfilter as qc {
         input:
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
-            threads = "16",
+            threads = 16,
             database = database,
             memory = rqc_mem,
             container = bbtools_container
@@ -111,7 +111,7 @@ task stage_single {
 task stage_interleave {
    input{
     String container
-    String memory
+    Int    memory
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
     String output_interleaved="raw.fastq.gz"
@@ -142,7 +142,7 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
 
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
@@ -158,7 +158,7 @@ task stage_interleave {
    }
 
    runtime {
-     memory: "10 GiB"
+     memory: "~{memory} GiB"
      cpu:  2
      maxRetries: 1
      docker: container
@@ -173,7 +173,7 @@ task rqcfilter {
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Int     memory
-        Int     xmxmem = floor(memory * 0.85)
+        Int     xmxmem = floor(memory * 0.75)
         Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
