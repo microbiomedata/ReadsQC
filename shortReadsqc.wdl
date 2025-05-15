@@ -14,6 +14,7 @@ workflow ShortReadsQC {
         Boolean interleaved
         String  database="/refdata/"
         Int     rqc_mem = 180
+        Boolean? chastityfilter_flag
     }
 
     if (interleaved) {
@@ -38,10 +39,11 @@ workflow ShortReadsQC {
    call rqcfilter as qc {
         input:
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
-            threads = 16,
+            threads = 32,
             database = database,
             memory = rqc_mem,
-            container = bbtools_container
+            container = bbtools_container,
+            chastityfilter_flag = chastityfilter_flag
     }
     
     call make_info_file {
@@ -183,7 +185,7 @@ task rqcfilter {
         String  filename_reproduce="filtered/reproduce.sh"
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
         String  jvm_threads=select_first([threads,system_cpu])
-        String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String? chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
     command <<<
