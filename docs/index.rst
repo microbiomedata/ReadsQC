@@ -126,7 +126,7 @@ Sample dataset(s)
 
 **Long Reads:**
 
-Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_) For testing we have subsampled the dataset, the original dataset is ~18GB.
+Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset, the original dataset is ~18GB.
 
 Input
 ------
@@ -164,11 +164,13 @@ An example input JSON file is shown below:
 
 	**Non-Interleaved**: :literal:`"rqcfilter.input_fq1": ["first-int-R1.fastq","second-int-R1.fastq"], "rqcfilter.input_fq2": ["first-int-R2.fastq","second-int-R2.fastq"]`
 
+	**Long Reads**: :literal:`"rqcfilter.input_files": ["PacBio-int.fastq"]`
+
 
 Output
 ------
 
-The output directory will contain the following files for short reads::
+The output directory will contain the following files for short or long reads::
 
     output/
     ├── nmdc_xxxxxxx_filtered.fastq.gz
@@ -176,16 +178,6 @@ The output directory will contain the following files for short reads::
     ├── nmdc_xxxxxxx_filterStats2.txt
     ├── nmdc_xxxxxxx_readsQC.info
     └── nmdc_xxxxxxx_qa_stats.json
-
-The output directory will contain the following files for long reads::
-
-    output/
-    ├── nmdc_xxxxxxx_pbmarkdupStats.txt
-    ├── nmdc_xxxxxxx_readsQC.info
-    ├── nmdc_xxxxxxx_bbdukEndsStats.json
-    ├── nmdc_xxxxxxx_icecreamStats.json
-    ├── nmdc_xxxxxxx_filtered.fastq.gz
-    └── nmdc_xxxxxxx_stats.json
 
 An example output txt file (:literal:`filterStats.txt`) for short reads is shown below:
    
@@ -219,18 +211,17 @@ nmdc_xxxxxxx_readsQC.info	      summary of parameters used in :literal:`BBTools 
 nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
 **Long Reads**
 nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
-nmdc_xxxxxxx_pbmarkdupStats.txt       statistics from the :literal:`pbmarkdup` duplicate removal
-nmdc_xxxxxxx_readsQC.info             summary of parameters and tools used in QC
-nmdc_xxxxxxx_bbdukEndsStats.json      :literal:`JSON` statistics from :literal:`bbduk` adapter trimming on ends
-nmdc_xxxxxxx_icecreamStats.json       :literal:`JSON` statistics from inverted repeat filtering
-nmdc_xxxxxxx_stats.json               summary statistics of output bases, input reads, input bases, output reads
+nmdc_xxxxxxx_filterStats.txt	      statistics from the :literal:`pbmarkdup` duplicate removal
+nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
+nmdc_xxxxxxx_readsQC.info	      summary of tools and dockers containers used for long reads QC
+nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
 ==================================== ============================================================================
 
 
 Version History
 ---------------
 
-- 1.0.13 (release date **11/07/2024**; previous versions: 1.0.12)
+- 1.0.14-alpha.1 (release date **5/15/2025**; previous versions: 1.0.12)
 
 
 Point of contact
