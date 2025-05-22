@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.13)
+Reads QC Workflow (v1.0.14-alpha.1)
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -16,7 +16,7 @@ Reads QC Workflow (v1.0.13)
 Workflow Overview
 -----------------
 
-**Short Reads:**
+**Short Reads (Illumina):**
 
 This workflow utilizes the program :literal:`rqcfilter2` from BBTools to perform quality control on raw Illumina reads for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using :literal:`BBDuk`), and performs human/cat/dog/mouse/microbe removal (using :literal:`BMap`).
 
@@ -42,7 +42,7 @@ The following parameters are used for :literal:`rqcfilter2` in this workflow::
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 
-**Long Reads:**
+**Long Reads (PacBio):**
 
 This workflow performs quality control on long reads from PacBio. The workflow performs duplicate removal (using :literal:`pbmarkdup`), inverted repeat filtering (using BBTools 
 :literal:`icecreamfinder.sh`), adapter trimming, and final filtering of reads with residual adapter sequences (using :literal:`bbduk`). The workflow is designed to handle input files in various formats, including .bam, .fq, or .fq.gz.
@@ -126,7 +126,7 @@ Sample dataset(s)
 
 **Long Reads:**
 
-Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset, the original dataset is ~18GB.
+- Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset, the original dataset is ~18GB.
 
 Input
 ------
