@@ -176,6 +176,7 @@ task rqcfilter {
         Boolean chastityfilter_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
+        Int     qin = 33
         Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
