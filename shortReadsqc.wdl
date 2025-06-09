@@ -196,6 +196,7 @@ task rqcfilter {
         rqcfilter2.sh \
             ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
+            qin=~{qin} \
             threads=~{jvm_threads} \
             ~{chastityfilter} \
             jni=t \
