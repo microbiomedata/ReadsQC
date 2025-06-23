@@ -118,7 +118,7 @@ Sample dataset(s)
 
 **Long-Reads:**
 
-- Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset, the original dataset is ~18GB.
+- Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/project/m3408/test_data/SRR13128014.pacbio.subsample/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset (~57MB), the original dataset is ~18G of bases.
 
 Input
 ------
@@ -212,6 +212,13 @@ nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads
 Download the example ReadsQC output for the short-reads Illumina run SRR7877884 (10% subset) `here <https://portal.nersc.gov/project/m3408//test_data/SRR7877884/SRR7877884-0.1_MetaG/ReadsQC/>`_.
 
 Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `here <https://portal.nersc.gov/project/m3408/test_data/SRR13128014.pacbio.subsample/ReadsQC/>`_.
+
+.. note::
+
+    **testset_fastq.gz**: raw data
+
+    **testset** or **testset.fastq**: QC results
+    
 
 Version History
 ---------------
