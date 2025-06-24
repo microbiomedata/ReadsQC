@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.13)
+Reads QC Workflow (v1.0.14-alpha.1)
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -16,9 +16,9 @@ Reads QC Workflow (v1.0.13)
 Workflow Overview
 -----------------
 
-**Short Reads:**
+**Short-Reads (Illumina):**
 
-This workflow utilizes the program :literal:`rqcfilter2` from BBTools to perform quality control on raw Illumina reads for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using :literal:`BBDuk`), and performs human/cat/dog/mouse/microbe removal (using :literal:`BMap`).
+This workflow utilizes the program :literal:`rqcfilter2` from BBTools to perform quality control on raw Illumina reads (single- or paired-end) for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using :literal:`BBDuk`), and performs human/cat/dog/mouse/microbe removal (using :literal:`BMap`).
 
 The following parameters are used for :literal:`rqcfilter2` in this workflow::
 
@@ -42,9 +42,9 @@ The following parameters are used for :literal:`rqcfilter2` in this workflow::
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 
-**Long Reads:**
+**Long-Reads (PacBio):**
 
-This workflow performs quality control on long reads from PacBio. The workflow performs duplicate removal (using :literal:`pbmarkdup`), inverted repeat filtering (using BBTools 
+This workflow performs quality control on long-reads from PacBio. The workflow performs duplicate removal (using :literal:`pbmarkdup`), inverted repeat filtering (using BBTools 
 :literal:`icecreamfinder.sh`), adapter trimming, and final filtering of reads with residual adapter sequences (using :literal:`bbduk`). The workflow is designed to handle input files in various formats, including .bam, .fq, or .fq.gz.
 
 The following parameters are used for each stage in the workflow::
@@ -106,27 +106,19 @@ The following commands will download the database::
 
 Sample dataset(s)
 -----------------
-**Short Reads:**
+**Short-Reads:**
 
 - small dataset: `Ecoli 10x <https://portal.nersc.gov/cfs/m3408/test_data/ReadsQC_small_test_data.tgz>`_ . (Input/output included in tar.gz file).
 
-- Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ncbi.nlm.nih.gov/sra/SRX4716743>`_); this `dataset <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/>`_ is has 6.7G bases.
+- Zymobiomics mock-community DNA control (`SRR7877884 <https://www.ncbi.nlm.nih.gov/sra/SRX4716743>`_); this `dataset <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/>`_ has 6.7G bases.
 
   - The non-interleaved raw fastq files are available as `R1 <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884_1.fastq.gz>`_ and `R2 <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884_2.fastq.gz>`_
   - The interleaved raw fastq file is available `here <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884-int.fastq.gz>`_
   - A 10% subset of the interleaved fastq is available `here <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884-int-0.1.fastq.gz>`_
 
-.. note::
+**Long-Reads:**
 
-    If the input data is paired-end data, it must be in interleaved format. The following command will interleave the files, using the above dataset as an example:
-    
-.. code-block:: bash    
-
-    paste <(zcat SRR7877884_1.fastq.gz | paste - - - -) <(zcat SRR7877884_2.fastq.gz | paste - - - -) | tr '\t' '\n' | gzip -c > SRR7877884-int.fastq.gz
-
-**Long Reads:**
-
-Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_) For testing we have subsampled the dataset, the original dataset is ~18GB.
+- Zymobiomics synthetic metagenome (`SRR13128014 <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample/SRR13128014.pacbio.subsample.ccs.fastq.gz>`_); for testing we have subsampled the dataset (~57MB), the original dataset is ~18G of bases.
 
 Input
 ------
@@ -142,7 +134,7 @@ A `JSON file <https://github.com/microbiomedata/ReadsQC/blob/documentation/input
 
 
 An example input JSON file is shown below:
-**Short Reads, Interleaved**
+**Short-Reads, Interleaved**
 
 .. code-block:: JSON
 
@@ -164,11 +156,13 @@ An example input JSON file is shown below:
 
 	**Non-Interleaved**: :literal:`"rqcfilter.input_fq1": ["first-int-R1.fastq","second-int-R1.fastq"], "rqcfilter.input_fq2": ["first-int-R2.fastq","second-int-R2.fastq"]`
 
+	**Long-Reads**: :literal:`"rqcfilter.input_files": ["PacBio-int.fastq"]`
+
 
 Output
 ------
 
-The output directory will contain the following files for short reads::
+The output directory will contain the following files for short or long-reads::
 
     output/
     ├── nmdc_xxxxxxx_filtered.fastq.gz
@@ -177,17 +171,7 @@ The output directory will contain the following files for short reads::
     ├── nmdc_xxxxxxx_readsQC.info
     └── nmdc_xxxxxxx_qa_stats.json
 
-The output directory will contain the following files for long reads::
-
-    output/
-    ├── nmdc_xxxxxxx_pbmarkdupStats.txt
-    ├── nmdc_xxxxxxx_readsQC.info
-    ├── nmdc_xxxxxxx_bbdukEndsStats.json
-    ├── nmdc_xxxxxxx_icecreamStats.json
-    ├── nmdc_xxxxxxx_filtered.fastq.gz
-    └── nmdc_xxxxxxx_stats.json
-
-An example output txt file (:literal:`filterStats.txt`) for short reads is shown below:
+An example output txt file (:literal:`filterStats.txt`) for short-reads is shown below:
    
 .. code-block:: text 
     
@@ -211,26 +195,35 @@ Below is an example of all the output directory files with descriptions to the r
 ==================================== ============================================================================
 FileName                              Description
 ==================================== ============================================================================
-**Short Reads**
+**Short-Reads**
 nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
 nmdc_xxxxxxx_filterStats.txt	      summary statistics 
 nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
 nmdc_xxxxxxx_readsQC.info	      summary of parameters used in :literal:`BBTools rqcfilter2`
 nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
-**Long Reads**
+**Long-Reads**
 nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
-nmdc_xxxxxxx_pbmarkdupStats.txt       statistics from the :literal:`pbmarkdup` duplicate removal
-nmdc_xxxxxxx_readsQC.info             summary of parameters and tools used in QC
-nmdc_xxxxxxx_bbdukEndsStats.json      :literal:`JSON` statistics from :literal:`bbduk` adapter trimming on ends
-nmdc_xxxxxxx_icecreamStats.json       :literal:`JSON` statistics from inverted repeat filtering
-nmdc_xxxxxxx_stats.json               summary statistics of output bases, input reads, input bases, output reads
+nmdc_xxxxxxx_filterStats.txt	      statistics from the :literal:`pbmarkdup` duplicate removal
+nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
+nmdc_xxxxxxx_readsQC.info	      summary of tools and dockers containers used for long-reads QC
+nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
 ==================================== ============================================================================
 
+Download the example ReadsQC output for the short-reads Illumina run SRR7877884 (10% subset) `here <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884-0.1_MetaG/ReadsQC/>`_.
+
+Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `here <https://portal.nersc.gov/cfs/m3408/test_data/SRR13128014.pacbio.subsample/ReadsQC/>`_.
+
+.. note::
+
+    **testset_fastq.gz**: raw data
+
+    **testset** or **testset.fastq**: QC results
+    
 
 Version History
 ---------------
 
-- 1.0.13 (release date **11/07/2024**; previous versions: 1.0.12)
+- 1.0.14-alpha.1 (release date **5/15/2025**; previous versions: 1.0.12)
 
 
 Point of contact
