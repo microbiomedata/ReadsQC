@@ -1,19 +1,30 @@
 version 1.0
 import "shortReadsqc.wdl" as srqc
 import "longReadsqc.wdl" as lrqc
+import "sra2fastq.wdl" as sra
 
 workflow rqcfilter{
     input {
     Array[String] input_files
     Array[String] input_fq1
     Array[String] input_fq2
+    Array[String] accessions
     File?       reference
     String      proj
     Boolean     interleaved
-    Boolean     shortRead
+    Boolean     shortRead_input
     Boolean?    chastityfilter_flag
   }
 
+    if (length(accessions) > 1) {
+        call sra.sra2fastq as sra2fastq {
+            input:
+                accessions = accessions
+        }
+    }
+
+    Boolean shortReads = select_first([sra2fastq.isIllumina, shortRead_input])
+    
     if (shortRead) {
         call srqc.ShortReadsQC {
             input:
