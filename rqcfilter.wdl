@@ -17,7 +17,7 @@ workflow rqcfilter{
   }
 
     if (length(accessions) > 1) {
-        call sra.sra2fastq as sra2fastq {
+        call sra.sra as sra2fastq {
             input:
                 accessions = accessions
         }

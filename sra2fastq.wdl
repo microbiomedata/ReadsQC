@@ -21,6 +21,14 @@ workflow sra {
         container = container
 
     }
+    output {
+        Array[File] outputFiles = sra2fastq.outputFiles
+        Array[File] output_fq1 = sra2fastq.output_fq1   
+        Array[File] output_fq2 = sra2fastq.output_fq1
+        Boolean isIllumina = sra2fastq.isIllumina
+        Boolean isPaired = sra2fastq.isPaired
+        Boolean isPacBio = sra2fastq.isPacBio
+    }
 }
 
 task sra2fastq {
