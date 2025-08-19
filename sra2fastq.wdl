@@ -36,11 +36,16 @@ task sra2fastq {
      command <<<
 
         sra2fastq.py ~{sep=' ' accessions} ~{"--outdir=" + outdir}  ~{true=" --clean True" false="" clean} ~{" --platform_restrict=" + platform_restrict} ~{" --filesize_restrict=" + filesize_restrict} ~{" --runs_restrict=" + runs_restrict}
-    
+        if compgen -G "~{outdir}"/*metadata.txt > /dev/null && \
+           grep -iq "illumina" "~{outdir}"/*metadata.txt; then
+            echo true > check_illumina.txt
+        else
+            echo false > check_illumina.txt
+        fi
     >>>
     output {
-        Array[File] outputFiles = glob("${outdir}/*")
-        Boolean isIllumina = if (glob("${outdir}/*.fastq.gz").size() > 1) true else false
+        Array[File] outputFiles = glob("~{outdir}/*")
+        Boolean isIllumina = read_boolean("check_illumina.txt")
     }
 
     runtime {

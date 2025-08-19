@@ -23,7 +23,7 @@ workflow rqcfilter{
         }
     }
 
-    Boolean shortReads = select_first([sra2fastq.isIllumina, shortRead_input])
+    Boolean shortRead = select_first([sra2fastq.isIllumina, shortRead_input])
     
     if (shortRead) {
         call srqc.ShortReadsQC {
@@ -47,6 +47,7 @@ workflow rqcfilter{
     }
 
     output {
+        Array[File] sra_fastq_files = sra2fastq.outputFiles
         File? filtered_final = if (shortRead) then ShortReadsQC.filtered_final else LongReadsQC.filtered_final
         File? filtered_stats_final = if (shortRead) then ShortReadsQC.filtered_stats_final else LongReadsQC.filtered_stats1
         File? filtered_stats2_final = if (shortRead) then ShortReadsQC.filtered_stats2_final else LongReadsQC.filtered_stats2
