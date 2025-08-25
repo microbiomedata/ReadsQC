@@ -16,7 +16,7 @@ workflow rqcfilter{
     Boolean?    chastityfilter_flag
   }
 
-    if (length(accessions) > 1) {
+    if (length(accessions) > 0) {
         call sra.sra as sra2fastq {
             input:
                 accessions = accessions
@@ -24,7 +24,7 @@ workflow rqcfilter{
     }
 
     Boolean is_shortReads = select_first([sra2fastq.isIllumina, shortRead])
-    Boolean is_interleaved = if (length(accessions) > 1) then false else interleaved
+    Boolean is_interleaved = if (length(accessions) > 0) then false else interleaved
     Boolean is_Pacbio       = select_first([sra2fastq.isPacBio, !shortRead])
     Boolean unsupported_platform = !(is_shortReads) && !(is_Pacbio)
 
@@ -40,7 +40,7 @@ workflow rqcfilter{
                 input_fq2 = select_first([sra2fastq.output_fq2, input_fq2]),
                 interleaved = is_interleaved,
                 proj = proj,
-                chastityfilter_flag = if (length(accessions) > 1) then false else chastityfilter_flag
+                chastityfilter_flag = if (length(accessions) > 0) then false else chastityfilter_flag
         }
     }
 
