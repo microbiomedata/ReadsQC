@@ -128,9 +128,10 @@ A `JSON file <https://github.com/microbiomedata/ReadsQC/blob/documentation/input
 1. the path to the interleaved fastq file (longreads and shortreads) 
 2. forwards reads fastq file (when input_interleaved is false)
 3. reverse reads fastq file (when input_interleaved is false)  
-4. project id
-5. if the input is interleaved (boolean) 
-6. if the input is shortreads (boolean)
+4. NCBI SRA accessions (mutually exclusive to above inputs. ex: SRR34992488)
+5. project id
+6. if the input is interleaved (boolean) 
+7. if the input is shortreads (boolean)
 
 
 An example input JSON file is shown below:
@@ -139,12 +140,13 @@ An example input JSON file is shown below:
 .. code-block:: JSON
 
     {
-	"rqcfilter.input_files": ["https://portal.nersc.gov/cfs/m3408/test_data/smalltest.int.fastq.gz"],
-    	"rqcfilter.input_fq1": [],
-    	"rqcfilter.input_fq2": [],
-    	"rqcfilter.proj": "nmdc:xxxxxxx",
-   	"rqcfilter.interleaved": true,
-    	"rqcfilter.shortRead": true
+        "rqcfilter.input_files": ["https://portal.nersc.gov/cfs/m3408/test_data/smalltest.int.fastq.gz"],
+        "rqcfilter.input_fq1": [],
+        "rqcfilter.input_fq2": [],
+        "rqcfilter.accessions": [],
+        "rqcfilter.proj": "nmdc:xxxxxxx",
+        "rqcfilter.interleaved": true,
+        "rqcfilter.shortRead": true
     }
 
 .. note::
@@ -156,7 +158,7 @@ An example input JSON file is shown below:
 
 	**Non-Interleaved**: :literal:`"rqcfilter.input_fq1": ["first-int-R1.fastq","second-int-R1.fastq"], "rqcfilter.input_fq2": ["first-int-R2.fastq","second-int-R2.fastq"]`
 
-	**Long-Reads**: :literal:`"rqcfilter.input_files": ["PacBio-int.fastq"]`
+	**Long-Reads**: :literal:`"rqcfilter.input_files": ["PacBio.fastq"]`
 
 
 Output
@@ -199,15 +201,20 @@ FileName                              Description
 nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
 nmdc_xxxxxxx_filterStats.txt	      summary statistics 
 nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
-nmdc_xxxxxxx_readsQC.info	      summary of parameters used in :literal:`BBTools rqcfilter2`
-nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
+nmdc_xxxxxxx_readsQC.info	          summary of parameters used in :literal:`BBTools rqcfilter2`
+nmdc_xxxxxxx_qa_stats.json	          summary statistics of output bases, input reads, input bases, output reads
 **Long-Reads**
 nmdc_xxxxxxx_filtered.fastq.gz        main output (clean data)
 nmdc_xxxxxxx_filterStats.txt	      statistics from the :literal:`pbmarkdup` duplicate removal
 nmdc_xxxxxxx_filterStats2.txt	      more detailed summary statistics
-nmdc_xxxxxxx_readsQC.info	      summary of tools and dockers containers used for long-reads QC
-nmdc_xxxxxxx_qa_stats.json	      summary statistics of output bases, input reads, input bases, output reads
+nmdc_xxxxxxx_readsQC.info	          summary of tools and dockers containers used for long-reads QC
+nmdc_xxxxxxx_qa_stats.json	          summary statistics of output bases, input reads, input bases, output reads
 ==================================== ============================================================================
+
+.. note::
+
+    When the input consists of SRA accessions (e.g., "rqcfilter.accessions": ["SRR34992488"]), the workflow will also output the corresponding FASTQ files (e.g., SRR34992488_1.fastq.gz and SRR34992488_2.fastq.gz) in addition to the standard output files.
+
 
 Download the example ReadsQC output for the short-reads Illumina run SRR7877884 (10% subset) `here <https://portal.nersc.gov/cfs/m3408/test_data/SRR7877884/SRR7877884-0.1_MetaG/ReadsQC/>`_.
 

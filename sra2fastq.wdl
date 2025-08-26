@@ -25,6 +25,7 @@ workflow sra {
         Array[String] outputFiles = sra2fastq.outputFiles
         Array[String] output_fq1 = sra2fastq.output_fq1   
         Array[String] output_fq2 = sra2fastq.output_fq2
+        Array[String] metadata = sra2fastq.metadata
         Boolean isIllumina = sra2fastq.isIllumina
         Boolean isPaired = sra2fastq.isPaired
         Boolean isPacBio = sra2fastq.isPacBio
@@ -70,7 +71,7 @@ task sra2fastq {
         Array[String] outputFiles = glob("~{outdir}/*/*fastq.gz")
         Array[String] output_fq1 = glob("~{outdir}/*/*_1.fastq.gz")
         Array[String] output_fq2 = glob("~{outdir}/*/*_2.fastq.gz")
-        File?   metadata = glob("~{outdir}/*/*metadata.txt")[0]
+        Array[String] metadata = glob("~{outdir}/*/*metadata.txt")
         Boolean isIllumina = read_boolean("check_illumina.txt")
         Boolean isPaired = read_boolean("check_paired.txt")
         Boolean isPacBio = read_boolean("check_pacbio.txt")
