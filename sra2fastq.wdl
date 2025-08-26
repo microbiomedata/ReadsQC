@@ -44,7 +44,14 @@ task sra2fastq {
     }
     command <<<
 
-        sra2fastq.py ~{sep=' ' accessions} ~{"--outdir=" + outdir}  ~{true=" --clean True" false="" clean} ~{" --platform_restrict=" + platform_restrict} ~{" --filesize_restrict=" + filesize_restrict} ~{" --runs_restrict=" + runs_restrict}
+        sra2fastq.py \
+            ~{sep=' ' accessions} \
+            ~{"--outdir=" + outdir} \
+            ~{true=" --clean True" false="" clean} \
+            ~{" --platform_restrict=" + platform_restrict} \
+            ~{" --filesize_restrict=" + filesize_restrict} \
+            ~{" --runs_restrict=" + runs_restrict}
+
         if compgen -G "~{outdir}"/*/*metadata.txt > /dev/null; then
             if grep -iq "illumina" "~{outdir}"/*/*metadata.txt; then
                 echo true > check_illumina.txt
