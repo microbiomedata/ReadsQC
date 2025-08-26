@@ -68,7 +68,7 @@ task UnsupportedPlatformNotice {
         echo "ERROR: Only Illumina and PacBio sequencing platforms are supported at this time." >&2
     }
     output {
-        String msg = read_string(stdout())
+        String msg = read_string(stderr())
     }
     runtime {
         memory: "1 GiB"
