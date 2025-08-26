@@ -42,7 +42,7 @@ task sra2fastq {
         Int? runs_restrict
         String container
     }
-     command <<<
+    command <<<
 
         sra2fastq.py ~{sep=' ' accessions} ~{"--outdir=" + outdir}  ~{true=" --clean True" false="" clean} ~{" --platform_restrict=" + platform_restrict} ~{" --filesize_restrict=" + filesize_restrict} ~{" --runs_restrict=" + runs_restrict}
         if compgen -G "~{outdir}"/*/*metadata.txt > /dev/null; then
