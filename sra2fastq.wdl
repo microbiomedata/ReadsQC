@@ -66,6 +66,11 @@ task sra2fastq {
             echo false > check_paired.txt
             echo false > check_pacbio.txt
         fi
+        # check if any fastq files were created
+        if ! compgen -G "~{outdir}"/*/*.fastq.gz > /dev/null; then
+            echo "WARNING: No FASTQ files were generated for accessions: ~{sep=',' accessions}" >&2
+            echo "No FASTQ files generated" > warning.txt
+        fi
     >>>
     output {
         Array[String] outputFiles = glob("~{outdir}/*/*fastq.gz")
