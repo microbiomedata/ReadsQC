@@ -31,26 +31,28 @@ This workflow performs quality control on long reads from PacBio. The workflow p
 1. the path to the interleaved fastq file (longreads and shortreads) 
 2. forwards reads fastq file (when input_interleaved is false)
 3. reverse reads fastq file (when input_interleaved is false)  
-4. project id
-5. if the input is interleaved (boolean) 
-6. if the input is shortreads (boolean)
+4. NCBI SRA accessions (mutually exclusive to above inputs. ex: SRR6324898)
+5. project id
+6. if the input is interleaved (boolean) 
+7. if the input is shortreads (boolean)
 
 ```
 {
 	"rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.int.fastq.gz"],
-    	"rqcfilter.input_fq1": [],
-    	"rqcfilter.input_fq2": [],
-    	"rqcfilter.proj": "nmdc:xxxxxxx",
+    "rqcfilter.input_fq1": [],
+    "rqcfilter.input_fq2": [],
+    "rqcfilter.accessions": [],
+    "rqcfilter.proj": "nmdc:xxxxxxx",
    	"rqcfilter.interleaved": true,
-    	"rqcfilter.shortRead": true
+    "rqcfilter.shortRead": true
 }
 ```
 
 ## Output files
 
-The output will have one directory named by prefix of the fastq input file and a bunch of output files, including statistical numbers, status log and a shell script to reproduce the steps etc. 
+The output will have one directory named by prefix of the output files, including statistical numbers, status log and readsQC.info. When the input consists of SRA accessions (e.g., "rqcfilter.accessions": ["SRR34992488"]), the workflow will also output the corresponding FASTQ files (e.g., SRR34992488_1.fastq.gz and SRR34992488_2.fastq.gz) in addition to the standard output files.
 
-The main QC fastq output is named by prefix.anqdpht.fast.gz. 
+The main QC fastq output is named by prefix_filtered.fastq.gz. 
 
 ```
 * Short Reads

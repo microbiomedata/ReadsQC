@@ -203,7 +203,7 @@ task bbdukEnds {
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
         
-        grep -v _JAVA_OPTIONS stderr > bbdukEnds_stats.json
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukEnds_stats.json
 
     >>>
 
@@ -243,8 +243,8 @@ task bbdukReads {
         ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
-        
-        grep -v _JAVA_OPTIONS stderr >  bbdukReads_stats.json
+
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukReads_stats.json
 
         #echo -e "outputReads\toutputBases" > output_size.txt
         seqtk size ~{out_file} > output_size.txt
