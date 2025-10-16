@@ -2,9 +2,9 @@
 
 ## Summary
 
-This workflow is a replicate of the [QA protocol](https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/data-preprocessing/) implemented at JGI for Illumina reads.
+This workflow is a replicate of the [QA protocol](https://archive.jgi.doe.gov/data-and-tools/software-tools/bbtools/) implemented at JGI for Illumina reads.
 
-This workflow utilizes the program `rqcfilter2` from BBTools to perform quality control on raw Illumina reads for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using `BBDuk`), and performs human/cat/dog/mouse/microbe removal (using `BMap`).
+This workflow utilizes the program `rqcfilter2` from BBTools to perform quality control on raw Illumina reads for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using `BBDuk`), and performs human/cat/dog/mouse/microbe removal (using `BBMap`).
 
 This workflow performs quality control on long reads from PacBio. The workflow performs duplicate removal (using `pbmarkdup`), inverted repeat filtering (using BBTools 
 `icecreamfinder.sh`), adapter trimming, and final filtering of reads with residual adapter sequences (using `bbduk`). The workflow is designed to handle input files in various formats, including .bam, .fq, or .fq.gz.
