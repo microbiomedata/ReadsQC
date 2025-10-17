@@ -2,7 +2,7 @@
 
 ## Summary
 
-This workflow is a replicate of the [QA protocol](https://archive.jgi.doe.gov/data-and-tools/software-tools/bbtools/) implemented at JGI for Illumina reads.
+This workflow is a replicate of the [QA protocol](https://bbmap.org/) implemented at JGI for Illumina reads.
 
 This workflow utilizes the program `rqcfilter2` from BBTools to perform quality control on raw Illumina reads for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using `BBDuk`), and performs human/cat/dog/mouse/microbe removal (using `BBMap`).
 
