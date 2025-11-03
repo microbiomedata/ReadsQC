@@ -7,8 +7,8 @@ workflow nmdc_rqcfilter {
         String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        String  input_fastq1
-        String  input_fastq2
+        Array[String]  input_fastq1
+        Array[String]  input_fastq2
         String  database="/refdata/"
         Int     rqc_mem = 180
     }
@@ -59,19 +59,32 @@ task stage {
         String target_reads_1="raw_reads_1.fastq.gz"
         String target_reads_2="raw_reads_2.fastq.gz"
         String output_interleaved="raw_interleaved.fastq.gz"
-        String input_fastq1
-        String input_fastq2
+        Array[String] input_fastq1
+        Array[String] input_fastq2
+        Int file_num = length(input_fastq1)
     }
 
    command <<<
        set -euo pipefail
-       if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
-           wget ~{input_fastq1} -O ~{target_reads_1}
-           wget ~{input_fastq2} -O ~{target_reads_2}
-       else
-           ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
-           ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
-       fi
+
+       # load wdl array to shell array
+       FQ1_ARRAY=(~{sep=" " input_fastq1})
+       FQ2_ARRAY=(~{sep=" " input_fastq2})
+       
+        for (( i = 0; i < ~{file_num}; i++ )) ;do
+            fq1_name=$(basename ${FQ1_ARRAY[$i]})
+            fq2_name=$(basename ${FQ2_ARRAY[$i]})
+            if [ $( echo ${FQ1_ARRAY[$i]} | egrep -c "https*:") -gt 0 ] ; then
+                    wget --no-check-certificate ${FQ1_ARRAY[$i]} -O $fq1_name
+                    wget --no-check-certificate ${FQ2_ARRAY[$i]} -O $fq2_name
+            else
+                    ln -s ${FQ1_ARRAY[$i]} $fq1_name || cp ${FQ1_ARRAY[$i]} $fq1_name 
+                    ln -s ${FQ2_ARRAY[$i]} $fq2_name || cp ${FQ2_ARRAY[$i]} $fq2_name
+            fi
+            
+            cat $fq1_name  >> ~{target_reads_1}
+            cat $fq2_name  >> ~{target_reads_2}
+        done
 
        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
        # Capture the start time
