@@ -4,20 +4,28 @@ import "longReadsqc.wdl" as lrqc
 
 workflow rqcfilter{
     input {
-    Array[String] input_files
-    Array[String] input_fq1
-    Array[String] input_fq2
+    Array[String]? input_files
+    Array[String]? input_fq1
+    Array[String]? input_fq2
     File?         reference
     String        proj
     Boolean       interleaved
     Boolean       shortRead
   }
-    if (shortRead) {
+    if (shortRead && defined(input_files) && interleaved ) {
         call srqc.ShortReadsQC{
             input:
             input_files = input_files,
+            interleaved = interleaved,
+            proj = proj
+        }
+    }
+
+    if (shortRead && defined(input_fq1) && defined(input_fq2) && !interleaved ) {
+        call srqc.ShortReadsQC{
+            input:
             input_fq1 = input_fq1,
-            input_fq2 = input_fq2,
+	    input_fq2 = input_fq2,
             interleaved = interleaved,
             proj = proj
         }

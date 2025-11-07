@@ -8,15 +8,15 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[String] input_files
-        Array[String] input_fq1
-        Array[String] input_fq2
+        Array[String]? input_files
+        Array[String]? input_fq1
+        Array[String]? input_fq2
         Boolean interleaved
         String  database="/refdata/"
         Int     rqc_mem = 180
     }
 
-    if (interleaved) {
+    if (interleaved && defined(input_files)) {
         call stage_single {
             input:
                 container = container,
@@ -24,7 +24,7 @@ workflow ShortReadsQC {
         }
     }
 
-    if (!interleaved) {
+    if (!interleaved && defined (input_fq1) && (input_fq2)) {
         call stage_interleave {
             input:
                 input_fastq1 = input_fq1,
