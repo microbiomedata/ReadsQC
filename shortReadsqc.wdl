@@ -2,7 +2,7 @@
 version 1.0
 
 workflow ShortReadsQC {
-    input{
+    input {
         String  container="bfoster1/img-omics:0.1.9"
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
@@ -20,15 +20,15 @@ workflow ShortReadsQC {
         call stage_single {
             input:
                 container = container,
-                input_file = input_files
+                input_file = select_first([input_files, []])
         }
     }
 
-    if (!interleaved && defined (input_fq1) && (input_fq2)) {
+    if (!interleaved && defined(input_fq1) && defined(input_fq2)) {
         call stage_interleave {
             input:
-                input_fastq1 = input_fq1,
-                input_fastq2 = input_fq2,
+                input_fastq1 = select_first([input_fq1, []]),
+                input_fastq2 = select_first([input_fq2, []]),
                 container = bbtools_container,
                 memory = "10G"
             }
@@ -38,7 +38,7 @@ workflow ShortReadsQC {
    call rqcfilter as qc {
         input:
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
-            threads = "16",
+            threads = 16,
             database = database,
             memory = rqc_mem,
             container = bbtools_container
@@ -70,13 +70,13 @@ workflow ShortReadsQC {
 }
 
 task stage_single {
-    input{
+    input {
         String container
         String target="raw.fastq.gz"
         Array[String] input_file
     }
-   command <<<
 
+    command <<<
     set -oeu pipefail
 
     for file in ~{sep= ' ' input_file}; do
@@ -91,14 +91,12 @@ task stage_single {
 
     # Capture the start time
     date --iso-8601=seconds > start.txt
+    >>>
 
-   >>>
-
-   output{
-      File reads_fastq = "~{target}"
+   output {
+      File   reads_fastq = "~{target}"
       String start = read_string("start.txt")
    }
-
    runtime {
      memory: "1 GiB"
      cpu:  2
@@ -109,15 +107,15 @@ task stage_single {
 
 
 task stage_interleave {
-   input{
-    String container
-    String memory
-    String target_reads_1="raw_reads_1.fastq.gz"
-    String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw.fastq.gz"
-    Array[String] input_fastq1
-    Array[String] input_fastq2
-    Int file_num = length(input_fastq1)
+   input {
+        String container
+        String memory
+        String target_reads_1="raw_reads_1.fastq.gz"
+        String target_reads_2="raw_reads_2.fastq.gz"
+        String output_interleaved="raw.fastq.gz"
+        Array[String]  input_fastq1
+        Array[String]  input_fastq2
+        Int file_num = length(input_fastq1)
    }
 
    command <<<
@@ -149,24 +147,22 @@ task stage_interleave {
 
         # Capture the start time
         date --iso-8601=seconds > start.txt
+    >>>
 
-   >>>
-
-   output{
-      File reads_fastq = "~{output_interleaved}"
-      String start = read_string("start.txt")
-   }
-
+    output {
+        File   reads_fastq = "~{output_interleaved}"
+        String start = read_string("start.txt")
+    }
    runtime {
-     memory: "10 GiB"
-     cpu:  2
-     maxRetries: 1
-     docker: container
+        memory: "10 GiB"
+        cpu:  2
+        maxRetries: 1
+        docker: container
    }
 }
 
 task rqcfilter {
-    input{
+    input {
         File?   input_fastq
         String  container
         String  database
@@ -186,13 +182,7 @@ task rqcfilter {
         String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
-    runtime {
-        docker: container
-        memory: "~{memory} GiB"
-        cpu:  16
-    }
-
-     command<<<
+    command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 
@@ -241,23 +231,28 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-        >>>
+    >>>
 
-     output {
-            File stdout = filename_outlog
-            File stderr = filename_errlog
-            File stat = filename_stat
-            File stat2 = filename_stat2
-            File info_file = filename_reproduce
-            File filtered = "filtered/raw.anqdpht.fastq.gz"
-     }
+    output {
+        File stdout = filename_outlog
+        File stderr = filename_errlog
+        File stat = filename_stat
+        File stat2 = filename_stat2
+        File info_file = filename_reproduce
+        File filtered = "filtered/raw.anqdpht.fastq.gz"
+    }
+    runtime {
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  16
+    }
 }
 
 task make_info_file {
-    input{
-        File          info_file
-        String        prefix
-        String        container
+    input {
+        File   info_file
+        String prefix
+        String container
     }
 
     command<<<
@@ -302,13 +297,13 @@ task finish_rqc {
        /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
 
     >>>
+
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
         File filtered_stats2_final = "~{prefix}_filterStats2.txt"
         File json_out = "~{prefix}_qa_stats.json"
     }
-
     runtime {
         docker: container
         memory: "1 GiB"
