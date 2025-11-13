@@ -3,6 +3,6 @@
     "rqcfilter.input_fq1": [],
     "rqcfilter.input_fq2": [],
     "rqcfilter.proj": "nmdc:xxxxxxx",
-    "rqcfilter.interleaved": false,
+    "rqcfilter.interleaved": true,
     "rqcfilter.shortRead": true
   }
