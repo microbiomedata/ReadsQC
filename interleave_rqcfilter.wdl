@@ -1,39 +1,44 @@
 # Interleaved fastq QC workflow
 version 1.0
 workflow nmdc_rqcfilter {
-    input{
-    String  container="bfoster1/img-omics:0.1.9"
-    String  bbtools_container="microbiomedata/bbtools:38.96"
-    String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
-    String  proj
-    String  prefix=sub(proj, ":", "_")
-    String  input_fastq1
-    String  input_fastq2
-    String  database="/refdata/"
+    input {
+        String  container="bfoster1/img-omics:0.1.9"
+        String  bbtools_container="microbiomedata/bbtools:38.96"
+        String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
+        String  proj
+        String  prefix=sub(proj, ":", "_")
+        Array[String]  input_fastq1
+        Array[String]  input_fastq2
+        String  database="/refdata/"
+        Int     rqc_mem = 180
     }
 
     call stage {
-        input: container=bbtools_container,
-            memory="10G",
+        input: 
+            container=bbtools_container,
+            memory=10,
             input_fastq1=input_fastq1,
             input_fastq2=input_fastq2
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
-        input: input_files=stage.interleaved_reads,
-            threads="16",
+        input: 
+            input_files=stage.interleaved_reads,
+            threads=16,
             database=database,
-            memory="60G",
+            memory=rqc_mem,
             container = bbtools_container
     }
     call make_info_file {
-        input: info_file = qc.info_file,
+        input: 
+            info_file = qc.info_file,
             container=container,
             prefix = prefix
     }
 
     call finish_rqc {
-        input: container=workflowmeta_container,
+        input: 
+            container=workflowmeta_container,
             prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
@@ -47,41 +52,52 @@ workflow nmdc_rqcfilter {
     }
 }
 
-
-
 task stage {
-   input{
-    String container
-    String memory
-    String target_reads_1="raw_reads_1.fastq.gz"
-    String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw_interleaved.fastq.gz"
-    String input_fastq1
-    String input_fastq2
-   }
+   input {
+        String container
+        Int    memory
+        String target_reads_1="raw_reads_1.fastq.gz"
+        String target_reads_2="raw_reads_2.fastq.gz"
+        String output_interleaved="raw_interleaved.fastq.gz"
+        Array[String] input_fastq1
+        Array[String] input_fastq2
+        Int file_num = length(input_fastq1)
+    }
 
    command <<<
        set -euo pipefail
-       if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
-           wget ~{input_fastq1} -O ~{target_reads_1}
-           wget ~{input_fastq2} -O ~{target_reads_2}
-       else
-           ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
-           ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
-       fi
 
-       reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+       # load wdl array to shell array
+       FQ1_ARRAY=(~{sep=" " input_fastq1})
+       FQ2_ARRAY=(~{sep=" " input_fastq2})
+       
+        for (( i = 0; i < ~{file_num}; i++ )) ;do
+            fq1_name=$(basename ${FQ1_ARRAY[$i]})
+            fq2_name=$(basename ${FQ2_ARRAY[$i]})
+            if [ $( echo ${FQ1_ARRAY[$i]} | egrep -c "https*:") -gt 0 ] ; then
+                    wget --no-check-certificate ${FQ1_ARRAY[$i]} -O $fq1_name
+                    wget --no-check-certificate ${FQ2_ARRAY[$i]} -O $fq2_name
+            else
+                    ln -s ${FQ1_ARRAY[$i]} $fq1_name || cp ${FQ1_ARRAY[$i]} $fq1_name 
+                    ln -s ${FQ2_ARRAY[$i]} $fq2_name || cp ${FQ2_ARRAY[$i]} $fq2_name
+            fi
+            
+            cat $fq1_name  >> ~{target_reads_1}
+            cat $fq2_name  >> ~{target_reads_2}
+        done
+
+       reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
        # Capture the start time
        date --iso-8601=seconds > start.txt
-
    >>>
 
    output{
       File interleaved_reads = "~{output_interleaved}"
       String start = read_string("start.txt")
    }
+
    runtime {
-     memory: "1 GiB"
+     memory: "~{memory} GiB"
      cpu:  2
      maxRetries: 1
      docker: container
@@ -90,37 +106,32 @@ task stage {
 
 
 task rqcfilter {
-    input{
-     File input_files
-     String  container
-     String  database
-     String  rqcfilterdata = database + "/RQCFilterData"
-     Boolean chastityfilter_flag=true
-     String? memory
-     String? threads
-     String  filename_outlog="stdout.log"
-     String  filename_errlog="stderr.log"
-     String  filename_stat="filtered/filterStats.txt"
-     String  filename_stat2="filtered/filterStats2.txt"
-     String  filename_stat_json="filtered/filterStats.json"
-     String  filename_reproduce="filtered/reproduce.sh"
-     String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-     String  jvm_threads=select_first([threads,system_cpu])
-     String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+    input {
+        File    input_files
+        String  container
+        String  database
+        String  rqcfilterdata = database + "/RQCFilterData"
+        Boolean chastityfilter_flag=true
+        Int     memory
+        Int     xmxmem = floor(memory * 0.75)
+        Int?    threads
+        String  filename_outlog="stdout.log"
+        String  filename_errlog="stderr.log"
+        String  filename_stat="filtered/filterStats.txt"
+        String  filename_stat2="filtered/filterStats2.txt"
+        String  filename_stat_json="filtered/filterStats.json"
+        String  filename_reproduce="filtered/reproduce.sh"
+        String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
+        String  jvm_threads=select_first([threads,system_cpu])
+        String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
-     runtime {
-            docker: container
-            memory: "70 GB"
-            cpu:  16
-     }
-
-     command<<<
+    command <<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 
         rqcfilter2.sh \
-            ~{if (defined(memory)) then "-Xmx" + memory else "-Xmx60G" }\
+            ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
             threads=~{jvm_threads} \
             ~{chastityfilter} \
@@ -164,23 +175,30 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-     >>>
-     output {
-            File stdout = filename_outlog
-            File stderr = filename_errlog
-            File stat = filename_stat
-            File stat2 = filename_stat2
-            File info_file = filename_reproduce
-            File filtered = glob("filtered/*fastq.gz")[0]
-            File json_out = filename_stat_json
-     }
+    >>>
+
+    output {
+        File stdout = filename_outlog
+        File stderr = filename_errlog
+        File stat = filename_stat
+        File stat2 = filename_stat2
+        File info_file = filename_reproduce
+        File filtered = glob("filtered/*fastq.gz")[0]
+        File json_out = filename_stat_json
+    }
+
+    runtime {
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  16
+    }
 }
 
 task make_info_file {
-    input{
-    File info_file
-    String prefix
-    String container
+    input {
+        File info_file
+        String prefix
+        String container
     }
     
     command<<<
@@ -195,6 +213,7 @@ task make_info_file {
     output {
         File rqc_info = "~{prefix}_readsQC.info"
     }
+
     runtime {
         memory: "1 GiB"
         cpu:  1
@@ -204,14 +223,14 @@ task make_info_file {
 }
 
 task finish_rqc {
-    input{
-    # File read
-    File filtered_stats
-    File filtered_stats2
-    File filtered
-    String container
-    String prefix
-    # String start
+    input {
+        # File read
+        File filtered_stats
+        File filtered_stats2
+        File filtered
+        String container
+        String prefix
+        # String start
     }
  
     command<<<
@@ -229,6 +248,7 @@ task finish_rqc {
        cp stats.json ~{prefix}_qa_stats.json
 
     >>>
+
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"

@@ -1,8 +1,9 @@
 version 1.0
 import "shortReadsqc.wdl" as srqc
 import "longReadsqc.wdl" as lrqc
+import "sra2fastq.wdl" as sra
 
-workflow rqcfilter{
+workflow rqcfilter {
     input {
     Array[String]? input_files
     Array[String]? input_fq1
@@ -11,7 +12,7 @@ workflow rqcfilter{
     String         proj
     Boolean        interleaved
     Boolean        shortRead
-  }
+    }
     if (shortRead && defined(input_files) && interleaved ) {
         call srqc.ShortReadsQC as sr_interleaved{
             input:
@@ -25,14 +26,14 @@ workflow rqcfilter{
         call srqc.ShortReadsQC as sr_paired{
             input:
             input_fq1   = input_fq1,
-	        input_fq2   = input_fq2,
+	          input_fq2   = input_fq2,
             interleaved = interleaved,
             proj        = proj
         }
     }
 
     if (!shortRead) {
-        call lrqc.LongReadsQC{
+        call lrqc.LongReadsQC {
             input:
             file      = select_first([input_files, []])[0],
             proj      = proj,

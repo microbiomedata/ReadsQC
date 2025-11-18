@@ -14,6 +14,7 @@ workflow ShortReadsQC {
         Boolean interleaved
         String  database="/refdata/"
         Int     rqc_mem = 180
+        Boolean? chastityfilter_flag
     }
 
     if (interleaved && defined(input_files)) {
@@ -30,7 +31,7 @@ workflow ShortReadsQC {
                 input_fastq1 = select_first([input_fq1, []]),
                 input_fastq2 = select_first([input_fq2, []]),
                 container = bbtools_container,
-                memory = "10G"
+                memory = 10
             }
     }
     
@@ -38,10 +39,11 @@ workflow ShortReadsQC {
    call rqcfilter as qc {
         input:
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
-            threads = 16,
+            threads = 32,
             database = database,
             memory = rqc_mem,
-            container = bbtools_container
+            container = bbtools_container,
+            chastityfilter_flag = chastityfilter_flag
     }
     
     call make_info_file {
@@ -73,7 +75,7 @@ task stage_single {
     input {
         String container
         String target="raw.fastq.gz"
-        Array[String] input_file
+        Array[File] input_file
     }
 
     command <<<
@@ -140,10 +142,10 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        reformat.sh -Xmx~{memory}G trimreaddescription=t in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
 
         # Validate that the read1 and read2 files are sorted correctly
-        reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
+        reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
 
         # Capture the start time
         date --iso-8601=seconds > start.txt
@@ -154,10 +156,10 @@ task stage_interleave {
         String start = read_string("start.txt")
     }
    runtime {
-        memory: "10 GiB"
-        cpu:  2
-        maxRetries: 1
-        docker: container
+     memory: "~{memory} GiB"
+     cpu:  2
+     maxRetries: 1
+     docker: container
    }
 }
 
@@ -169,7 +171,7 @@ task rqcfilter {
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Int     memory
-        Int     xmxmem = floor(memory * 0.85)
+        Int     xmxmem = floor(memory * 0.75)
         Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
@@ -179,10 +181,11 @@ task rqcfilter {
         String  filename_reproduce="filtered/reproduce.sh"
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
         String  jvm_threads=select_first([threads,system_cpu])
-        String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String? chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
-    command<<<
+    command <<<
+
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 
@@ -231,6 +234,7 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
+
     >>>
 
     output {
@@ -241,6 +245,7 @@ task rqcfilter {
         File info_file = filename_reproduce
         File filtered = "filtered/raw.anqdpht.fastq.gz"
     }
+    
     runtime {
         docker: container
         memory: "~{memory} GiB"

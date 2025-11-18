@@ -5,7 +5,7 @@ version 1.0
 
 workflow LongReadsQC {
     input {
-        String  file    
+        File  file    
         String  proj
         String  prefix=sub(proj, ":", "_")    
         String  log_level='INFO'
@@ -89,7 +89,7 @@ workflow LongReadsQC {
 
 task pbmarkdup {
     input {
-        String   in_file
+        File   in_file
         String   prefix
         String   out_file = prefix + ".pbmarkdup.fq"
         String?  log_level
@@ -125,6 +125,8 @@ task pbmarkdup {
         Array[Array[String]] input_stats = read_tsv("input_size.txt")      }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -168,6 +170,8 @@ task icecreamfilter {
     }
 
     runtime {
+        memory: "16 GiB"
+        cpu: 2
         docker: container
         continueOnReturnCode: true
     }
@@ -199,7 +203,7 @@ task bbdukEnds {
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
         
-        grep -v _JAVA_OPTIONS stderr > bbdukEnds_stats.json
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukEnds_stats.json
 
     >>>
 
@@ -209,6 +213,8 @@ task bbdukEnds {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -237,8 +243,8 @@ task bbdukReads {
         ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
-        
-        grep -v _JAVA_OPTIONS stderr >  bbdukReads_stats.json
+
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukReads_stats.json
 
         #echo -e "outputReads\toutputBases" > output_size.txt
         seqtk size ~{out_file} > output_size.txt
@@ -251,6 +257,8 @@ task bbdukReads {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
