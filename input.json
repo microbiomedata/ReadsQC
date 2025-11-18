@@ -1,9 +1,8 @@
 {
-  "rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/Ecoli_10x-int.fastq.gz"],
-  "rqcfilter.input_fq1": [],
-  "rqcfilter.input_fq2": [],
-  "rqcfilter.accessions":[],
-  "rqcfilter.proj": "nmdc:xxxxxxx",
-  "rqcfilter.interleaved": true,
-  "rqcfilter.shortRead": true
-}
+    "rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.int.fastq.gz"],
+    "rqcfilter.input_fq1": [],
+    "rqcfilter.input_fq2": [],
+    "rqcfilter.proj": "nmdc:xxxxxxx",
+    "rqcfilter.interleaved": true,
+    "rqcfilter.shortRead": true
+  }

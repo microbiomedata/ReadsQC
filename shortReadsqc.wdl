@@ -2,34 +2,34 @@
 version 1.0
 
 workflow ShortReadsQC {
-    input{
+    input {
         String  container="bfoster1/img-omics:0.1.9"
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[File] input_files
-        Array[File] input_fq1
-        Array[File] input_fq2
+        Array[String]? input_files
+        Array[String]? input_fq1
+        Array[String]? input_fq2
         Boolean interleaved
         String  database="/refdata/"
         Int     rqc_mem = 180
         Boolean? chastityfilter_flag
     }
 
-    if (interleaved) {
+    if (interleaved && defined(input_files)) {
         call stage_single {
             input:
                 container = container,
-                input_file = input_files
+                input_file = select_first([input_files, []])
         }
     }
 
-    if (!interleaved) {
+    if (!interleaved && defined(input_fq1) && defined(input_fq2)) {
         call stage_interleave {
             input:
-                input_fastq1 = input_fq1,
-                input_fastq2 = input_fq2,
+                input_fastq1 = select_first([input_fq1, []]),
+                input_fastq2 = select_first([input_fq2, []]),
                 container = bbtools_container,
                 memory = 10
             }
@@ -72,13 +72,13 @@ workflow ShortReadsQC {
 }
 
 task stage_single {
-    input{
+    input {
         String container
         String target="raw.fastq.gz"
         Array[File] input_file
     }
-   command <<<
 
+    command <<<
     set -oeu pipefail
 
     for file in ~{sep= ' ' input_file}; do
@@ -93,14 +93,12 @@ task stage_single {
 
     # Capture the start time
     date --iso-8601=seconds > start.txt
+    >>>
 
-   >>>
-
-   output{
-      File reads_fastq = "~{target}"
+   output {
+      File   reads_fastq = "~{target}"
       String start = read_string("start.txt")
    }
-
    runtime {
      memory: "1 GiB"
      cpu:  2
@@ -111,15 +109,15 @@ task stage_single {
 
 
 task stage_interleave {
-   input{
-    String container
-    Int    memory
-    String target_reads_1="raw_reads_1.fastq.gz"
-    String target_reads_2="raw_reads_2.fastq.gz"
-    String output_interleaved="raw.fastq.gz"
-    Array[File] input_fastq1
-    Array[File] input_fastq2
-    Int file_num = length(input_fastq1)
+   input {
+        String container
+        String memory
+        String target_reads_1="raw_reads_1.fastq.gz"
+        String target_reads_2="raw_reads_2.fastq.gz"
+        String output_interleaved="raw.fastq.gz"
+        Array[String]  input_fastq1
+        Array[String]  input_fastq2
+        Int file_num = length(input_fastq1)
    }
 
    command <<<
@@ -151,14 +149,12 @@ task stage_interleave {
 
         # Capture the start time
         date --iso-8601=seconds > start.txt
+    >>>
 
-   >>>
-
-   output{
-      File reads_fastq = "~{output_interleaved}"
-      String start = read_string("start.txt")
-   }
-
+    output {
+        File   reads_fastq = "~{output_interleaved}"
+        String start = read_string("start.txt")
+    }
    runtime {
      memory: "~{memory} GiB"
      cpu:  2
@@ -168,7 +164,7 @@ task stage_interleave {
 }
 
 task rqcfilter {
-    input{
+    input {
         File?   input_fastq
         String  container
         String  database
@@ -258,10 +254,10 @@ task rqcfilter {
 }
 
 task make_info_file {
-    input{
-        File          info_file
-        String        prefix
-        String        container
+    input {
+        File   info_file
+        String prefix
+        String container
     }
 
     command<<<
@@ -306,13 +302,13 @@ task finish_rqc {
        /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
 
     >>>
+
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
         File filtered_stats2_final = "~{prefix}_filterStats2.txt"
         File json_out = "~{prefix}_qa_stats.json"
     }
-
     runtime {
         docker: container
         memory: "1 GiB"
