@@ -1,7 +1,7 @@
 # Interleaved fastq QC workflow
 version 1.0
 workflow nmdc_rqcfilter {
-    input {
+    input{
         String  container="bfoster1/img-omics:0.1.9"
         String  bbtools_container="microbiomedata/bbtools:38.96"
         String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
@@ -10,39 +10,60 @@ workflow nmdc_rqcfilter {
         String  input_fastq1
         String  input_fastq2
         String  database="/refdata/"
+        # runtime parameters for JAWS
+        String  stage_mem = "10G"
+        Int     stage_cpu = 2
+        Int     stage_run_mins = 30
+        Int     rqc_cpu = 8
         Int     rqc_mem = 180
+        Int     rqc_run_mins = 500
+        String  make_info_mem = "100MB"
+        Int     make_info_cpu = 1
+        Int     make_info_run_mins = 5
+        String  finish_rqc_mem = "100MB"
+        Int     finish_rqc_cpu = 1
+        Int     finish_rqc_run_mins = 5
     }
 
     call stage {
         input: 
-            container=bbtools_container,
-            memory=10,
             input_fastq1=input_fastq1,
-            input_fastq2=input_fastq2
+            input_fastq2=input_fastq2,
+            container=bbtools_container,
+            memory=stage_mem,
+            cpu = stage_cpu,
+            run_mins = stage_run_mins
     }
     # Estimate RQC runtime at an hour per compress GB
     call rqcfilter as qc {
         input: 
             input_files=stage.interleaved_reads,
-            threads=16,
             database=database,
-            memory=rqc_mem,
-            container = bbtools_container
+            container = bbtools_container,
+            memory= rqc_mem,
+            cpu = rqc_cpu,
+            run_mins = rqc_run_mins
     }
     call make_info_file {
         input: 
             info_file = qc.info_file,
+            prefix = prefix,
             container=container,
-            prefix = prefix
+            memory=make_info_mem,
+            cpu = make_info_cpu,
+            run_mins = make_info_run_mins
     }
 
     call finish_rqc {
         input: 
-            container=workflowmeta_container,
             prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
-            filtered_stats2 = qc.stat2
+            filtered_stats2 = qc.stat2,
+            container=workflowmeta_container,
+            memory=finish_rqc_mem,
+            cpu = finish_rqc_cpu,
+            run_mins = finish_rqc_run_mins
     }
     output {
         File filtered_final = finish_rqc.filtered_final
@@ -52,56 +73,61 @@ workflow nmdc_rqcfilter {
     }
 }
 
+
+
 task stage {
-   input {
-        String container
-        Int    memory
+    input{
         String target_reads_1="raw_reads_1.fastq.gz"
         String target_reads_2="raw_reads_2.fastq.gz"
         String output_interleaved="raw_interleaved.fastq.gz"
         String input_fastq1
         String input_fastq2
+        String container
+        String memory
+        Int    cpu
+        Int    run_mins
     }
 
-   command <<<
-       set -euo pipefail
-       if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
-           wget ~{input_fastq1} -O ~{target_reads_1}
-           wget ~{input_fastq2} -O ~{target_reads_2}
-       else
-           ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
-           ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
-       fi
+    command <<<
+        set -euo pipefail
+        if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
+            wget ~{input_fastq1} -O ~{target_reads_1}
+            wget ~{input_fastq2} -O ~{target_reads_2}
+        else
+            ln -s ~{input_fastq1} ~{target_reads_1} || cp ~{input_fastq1} ~{target_reads_1}
+            ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
+        fi
 
-       reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
-       # Capture the start time
-       date --iso-8601=seconds > start.txt
-   >>>
+        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        # Capture the start time
+        date --iso-8601=seconds > start.txt
 
-   output{
-      File interleaved_reads = "~{output_interleaved}"
-      String start = read_string("start.txt")
-   }
+    >>>
 
-   runtime {
-     memory: "~{memory} GiB"
-     cpu:  2
-     maxRetries: 1
-     docker: container
-   }
+    output{
+        File interleaved_reads = "~{output_interleaved}"
+        String start = read_string("start.txt")
+    }
+    runtime {
+        docker: container
+        memory: memory
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
+    }
 }
 
 
 task rqcfilter {
-    input {
-        File    input_files
-        String  container
+    input{
+        File input_files
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
-        Int?    threads
+        Int     cpu
+        Int     threads = cpu * 2
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -111,9 +137,11 @@ task rqcfilter {
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
         String  jvm_threads=select_first([threads,system_cpu])
         String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String container
+        Int    run_mins
     }
 
-    command <<<
+    command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
         set -euo pipefail
 
@@ -162,7 +190,7 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-    >>>
+     >>>
 
     output {
         File stdout = filename_outlog
@@ -173,19 +201,23 @@ task rqcfilter {
         File filtered = glob("filtered/*fastq.gz")[0]
         File json_out = filename_stat_json
     }
-
     runtime {
         docker: container
         memory: "~{memory} GiB"
-        cpu:  16
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
     }
 }
 
 task make_info_file {
-    input {
+    input{
         File info_file
         String prefix
         String container
+        String memory
+        Int    cpu
+        Int    run_mins
     }
     
     command<<<
@@ -200,28 +232,28 @@ task make_info_file {
     output {
         File rqc_info = "~{prefix}_readsQC.info"
     }
-
     runtime {
-        memory: "1 GiB"
-        cpu:  1
-        maxRetries: 1
         docker: container
+        memory: memory
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
     }
 }
 
 task finish_rqc {
-    input {
-        # File read
+    input{
         File filtered_stats
         File filtered_stats2
         File filtered
-        String container
         String prefix
-        # String start
+        String container
+        String memory
+        Int    cpu
+        Int    run_mins
     }
  
     command<<<
-
         set -euo pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
@@ -229,13 +261,12 @@ task finish_rqc {
         ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
-       # Generate stats but rename some fields untilt the script is
-       # fixed.
-       /scripts/rqcstats.py ~{filtered_stats} > stats.json
-       cp stats.json ~{prefix}_qa_stats.json
+        # Generate stats but rename some fields untilt the script is
+        # fixed.
+        /scripts/rqcstats.py ~{filtered_stats} > stats.json
+        cp stats.json ~{prefix}_qa_stats.json
 
     >>>
-
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
@@ -244,7 +275,9 @@ task finish_rqc {
 
     runtime {
         docker: container
-        memory: "1 GiB"
-        cpu:  1
+        memory: memory
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
     }
 }
