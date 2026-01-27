@@ -8,12 +8,12 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[File] input_files
-        Array[File] input_fq1
-        Array[File] input_fq2
-        Boolean interleaved
-        String  database="/refdata/"
-        Int     rqc_mem = 180
+        Array[File]? input_files
+        Array[File]? input_fq1
+        Array[File]? input_fq2
+        Boolean  interleaved
+        String   database="/refdata/"
+        Int      rqc_mem = 180
         Boolean? chastityfilter_flag
     }
 

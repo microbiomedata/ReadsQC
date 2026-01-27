@@ -5,9 +5,9 @@ import "sra2fastq.wdl" as sra
 
 workflow rqcfilter{
     input {
-    Array[String] input_files
-    Array[String] input_fq1
-    Array[String] input_fq2
+    Array[String]? input_files
+    Array[String]? input_fq1
+    Array[String]? input_fq2
     Array[String] accessions
     File?       reference
     String      proj
