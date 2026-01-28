@@ -75,7 +75,7 @@ task stage_single {
     input{
         String container
         String target="raw.fastq.gz"
-        Array[File] input_file
+        Array[File]? input_file
     }
    command <<<
 
@@ -117,9 +117,9 @@ task stage_interleave {
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
     String output_interleaved="raw.fastq.gz"
-    Array[File] input_fastq1
-    Array[File] input_fastq2
-    Int file_num = length(input_fastq1)
+    Array[File]? input_fastq1
+    Array[File]? input_fastq2
+    Int file_num = length(select_first([input_fastq1, []]))
    }
 
    command <<<
