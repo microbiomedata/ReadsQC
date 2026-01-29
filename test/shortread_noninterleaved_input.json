@@ -1,0 +1,8 @@
+{
+    "rqcfilter.input_fq1": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.R1.fastq.gz"],
+    "rqcfilter.input_fq2": ["https://portal.nersc.gov/project/m3408//test_data/smalltest.R2.fastq.gz"],
+    "rqcfilter.accessions":[],
+    "rqcfilter.proj": "nmdc:xxxxxxx",
+    "rqcfilter.interleaved": false,
+    "rqcfilter.shortRead": true
+}
