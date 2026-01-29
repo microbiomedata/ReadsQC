@@ -5,13 +5,14 @@ version 1.0
 
 workflow LongReadsQC {
     input {
-        File  file    
+        String  file    
         String  proj
         String  prefix=sub(proj, ":", "_")    
         String  log_level='INFO'
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
+        String  container="bfoster1/img-omics:0.1.9"
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
         String  bbtools_container="microbiomedata/bbtools:39.03"
         String  jq_container="microbiomedata/jq:1.6"
@@ -19,16 +20,22 @@ workflow LongReadsQC {
         # String  prefix = basename(file)
     }
 
+call stage_longread {
+    input:
+        file = file,
+        container = container
+}
+
     call pbmarkdup {
-        input: 
-            in_file = file,
+        input:
+            in_file = stage_longread.reads_fastq,
             prefix = prefix,
             # outdir = outdir,
             log_level = log_level,
             rmdup = rmdup,
             container = pbmarkdup_container,
             overwrite = overwrite
-    }
+        }
 
     call icecreamfilter {
         input:
@@ -85,6 +92,44 @@ workflow LongReadsQC {
         # File filter_stat_json = finish_rqc.json_out
     }
 
+}
+
+task stage_longread {
+    input{
+        String container
+        String target="raw.fastq.gz"
+        String file
+    }
+
+    command <<<
+
+        set -oeu pipefail
+
+        temp=$(basename "~{file}")
+
+        if [ $(echo "~{file}" | egrep -c "https*:") -gt 0 ] ; then
+            wget "~{file}" -O "$temp"
+        else
+            ln -s "~{file}" "$temp" || cp "~{file}" "$temp"
+        fi
+        ln -sf "$temp" "~{target}" || cp "$temp" "~{target}"
+
+        # Capture the start time
+        date --iso-8601=seconds > start.txt
+
+    >>>
+
+    output{
+        File reads_fastq = "~{target}"
+        String start = read_string("start.txt")
+    }
+
+    runtime {
+        memory: "1 GiB"
+        cpu: 2
+        maxRetries: 1
+        docker: container
+    }
 }
 
 task pbmarkdup {

@@ -5,27 +5,29 @@ import "sra2fastq.wdl" as sra
 
 workflow rqcfilter{
     input {
-    Array[String] input_files
-    Array[String] input_fq1
-    Array[String] input_fq2
-    Array[String] accessions
-    File?       reference
-    String      proj
-    Boolean     interleaved
-    Boolean     shortRead
-    Boolean?    chastityfilter_flag
+    Array[String]? input_files
+    Array[String]? input_fq1
+    Array[String]? input_fq2
+    Array[String]? accessions
+    File?          reference
+    String         proj
+    Boolean        interleaved
+    Boolean        shortRead
+    Boolean?       chastityfilter_flag
   }
+    
+    Boolean has_accessions = defined(accessions) && length(select_first([accessions, []])) > 0
 
-    if (length(accessions) > 0) {
+    if (has_accessions) {
         call sra.sra as sra2fastq {
             input:
-                accessions = accessions
+                accessions = select_first([accessions, []])
         }
     }
 
-    Boolean is_shortReads = select_first([sra2fastq.isIllumina, shortRead])
-    Boolean is_interleaved = if (length(accessions) > 0) then false else interleaved
-    Boolean is_Pacbio       = select_first([sra2fastq.isPacBio, !shortRead])
+    Boolean is_shortReads  = select_first([sra2fastq.isIllumina, shortRead])
+    Boolean is_interleaved = if (has_accessions) then false else interleaved
+    Boolean is_Pacbio = select_first([sra2fastq.isPacBio, !shortRead])
     Boolean unsupported_platform = !(is_shortReads) && !(is_Pacbio)
 
     if (unsupported_platform) {
@@ -36,11 +38,11 @@ workflow rqcfilter{
         call srqc.ShortReadsQC {
             input:
                 input_files = input_files,
-                input_fq1 = select_first([sra2fastq.output_fq1, input_fq1]),
-                input_fq2 = select_first([sra2fastq.output_fq2, input_fq2]),
+                input_fq1 = if is_interleaved then [] else select_first([sra2fastq.output_fq1, input_fq1]),
+                input_fq2 = if is_interleaved then [] else select_first([sra2fastq.output_fq2, input_fq2]),
                 interleaved = is_interleaved,
                 proj = proj,
-                chastityfilter_flag = if (length(accessions) > 0) then false else chastityfilter_flag
+                chastityfilter_flag = if (has_accessions) then false else chastityfilter_flag
         }
     }
 
