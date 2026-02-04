@@ -10,19 +10,23 @@ workflow nmdc_rqcfilter {
         String  input_fastq1
         String  input_fastq2
         String  database="/refdata/"
-        # runtime parameters for JAWS
-        String  stage_mem = "10G"
-        Int     stage_cpu = 2
-        Int     stage_run_mins = 30
-        Int     rqc_cpu = 8
-        Int     rqc_mem = 180
-        Int     rqc_run_mins = 500
-        String  make_info_mem = "100MB"
-        Int     make_info_cpu = 1
-        Int     make_info_run_mins = 5
-        String  finish_rqc_mem = "100MB"
-        Int     finish_rqc_cpu = 1
-        Int     finish_rqc_run_mins = 5
+        # runtime parameters for JAWS. All memory is GB
+        Int stage_mem = 10
+        Int stage_cpu = 2
+        Int stage_run_mins = 30
+        Int rqc_cpu = 16
+        Int? rqc_threads
+        Int rqc_mem = 180
+        Int rqc_run_mins = 500
+        Int json_mem = 1
+        Int json_cpu = 1
+        Int json_run_mins = 5
+        Int make_info_mem = 1
+        Int make_info_cpu = 1
+        Int make_info_run_mins = 5
+        Int finish_rqc_mem = 1
+        Int finish_rqc_cpu = 1
+        Int finish_rqc_run_mins = 5
     }
 
     call stage {
@@ -42,7 +46,16 @@ workflow nmdc_rqcfilter {
             container = bbtools_container,
             memory= rqc_mem,
             cpu = rqc_cpu,
+            threads = rqc_threads,
             run_mins = rqc_run_mins
+    }
+    call rqcfilter_json {
+        input:
+            filtered_stats = qc.stat,
+            container = workflowmeta_container,
+            memory=json_mem,
+            cpu = json_cpu,
+            run_mins = json_run_mins
     }
     call make_info_file {
         input: 
@@ -83,12 +96,13 @@ task stage {
         String input_fastq1
         String input_fastq2
         String container
-        String memory
-        Int    cpu
-        Int    run_mins
+        Int memory
+        Int cpu
+        Int run_mins
     }
 
     command <<<
+        time bash <<'EOF'
         set -euo pipefail
         if [ $( echo ~{input_fastq1} | egrep -c "https*:") -gt 0 ] ; then
             wget ~{input_fastq1} -O ~{target_reads_1}
@@ -98,10 +112,10 @@ task stage {
             ln -s ~{input_fastq2} ~{target_reads_2} || cp ~{input_fastq2} ~{target_reads_2}
         fi
 
-        reformat.sh -Xmx~{memory} in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
         # Capture the start time
         date --iso-8601=seconds > start.txt
-
+        EOF
     >>>
 
     output{
@@ -110,7 +124,7 @@ task stage {
     }
     runtime {
         docker: container
-        memory: memory
+        memory: "~{memory} GiB"
         cpu:  cpu
         runtime_minutes: run_mins
         maxRetries: 1
@@ -127,7 +141,7 @@ task rqcfilter {
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
         Int     cpu
-        Int     threads = cpu * 2
+        Int?    threads 
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -135,7 +149,7 @@ task rqcfilter {
         String  filename_stat_json="filtered/filterStats.json"
         String  filename_reproduce="filtered/reproduce.sh"
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-        String  jvm_threads=select_first([threads,system_cpu])
+        String  jvm_threads=select_first([threads,cpu*2, system_cpu]) # remove cpu*2 if tests show no improvement
         String  chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
         String container
         Int    run_mins
@@ -143,6 +157,7 @@ task rqcfilter {
 
     command<<<
         export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
+        time bash <<'EOF'
         set -euo pipefail
 
         rqcfilter2.sh \
@@ -177,10 +192,42 @@ task rqcfilter {
             rqcfilterdata=~{rqcfilterdata} \
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
+        EOF
+     >>>
 
+    output {
+        File stdout = filename_outlog
+        File stderr = filename_errlog
+        File stat = filename_stat
+        File stat2 = filename_stat2
+        # File json_out = filename_stat_json
+        File info_file = filename_reproduce
+        File filtered = glob("filtered/*fastq.gz")[0]
+    }
+    runtime {
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
+    }
+}
+
+task rqcfilter_json {
+    input {
+        File   filtered_stats
+        String filename_stat_json="filterStats.json"
+        String container
+        Int    memory
+        Int    cpu
+        Int    run_mins
+    }
+
+    command <<<
+        time bash <<'EOF'
         python <<CODE
         import json
-        f = open("~{filename_stat}",'r')
+        f = open("~{filtered_stats}",'r')
         d = dict()
         for line in f:
             if not line.rstrip():continue
@@ -190,15 +237,9 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-     >>>
-
+        EOF
+    >>>
     output {
-        File stdout = filename_outlog
-        File stderr = filename_errlog
-        File stat = filename_stat
-        File stat2 = filename_stat2
-        File info_file = filename_reproduce
-        File filtered = glob("filtered/*fastq.gz")[0]
         File json_out = filename_stat_json
     }
     runtime {
@@ -215,18 +256,20 @@ task make_info_file {
         File info_file
         String prefix
         String container
-        String memory
+        Int    memory
         Int    cpu
         Int    run_mins
     }
     
     command<<<
+        time bash <<'EOF'
         set -euo pipefail
         sed -n 2,5p ~{info_file} 2>&1 | \
          perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
          ~{prefix}_readsQC.info
         echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> \
         ~{prefix}_readsQC.info
+        EOF
     >>>
 
     output {
@@ -234,7 +277,7 @@ task make_info_file {
     }
     runtime {
         docker: container
-        memory: memory
+        memory: "~{memory} GiB"
         cpu:  cpu
         runtime_minutes: run_mins
         maxRetries: 1
@@ -248,12 +291,13 @@ task finish_rqc {
         File filtered
         String prefix
         String container
-        String memory
+        Int    memory
         Int    cpu
         Int    run_mins
     }
  
     command<<<
+        time bash <<'EOF'
         set -euo pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
@@ -265,7 +309,7 @@ task finish_rqc {
         # fixed.
         /scripts/rqcstats.py ~{filtered_stats} > stats.json
         cp stats.json ~{prefix}_qa_stats.json
-
+        EOF
     >>>
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
@@ -275,7 +319,7 @@ task finish_rqc {
 
     runtime {
         docker: container
-        memory: memory
+        memory: "~{memory} GiB"
         cpu:  cpu
         runtime_minutes: run_mins
         maxRetries: 1

@@ -8,9 +8,9 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[File] input_files
-        Array[File] input_fq1
-        Array[File] input_fq2
+        Array[File]? input_files
+        Array[File]? input_fq1
+        Array[File]? input_fq2
         Boolean interleaved
         String  database="/refdata/"
         # runtime parameters for JAWS
@@ -21,6 +21,7 @@ workflow ShortReadsQC {
         Int     stage_paired_cpu = 2
         Int     stage_paired_run_mins = 30
         Int     rqc_cpu = 8
+        Int?    rqc_threads
         Int     rqc_mem = 180
         Int     rqc_run_mins = 1800
         String  make_info_mem = "1GB"
@@ -34,6 +35,7 @@ workflow ShortReadsQC {
     if (interleaved) {
         call stage_single {
             input:
+                input_file = select_first([input_files, []]),
                 container = container,
                 memory=stage_single_mem,
                 cpu = stage_single_cpu,
@@ -44,8 +46,8 @@ workflow ShortReadsQC {
     if (!interleaved) {
         call stage_interleave {
             input:
-                input_fastq1 = input_fq1,
-                input_fastq2 = input_fq2,
+                input_fastq1 = select_first([input_fq1, []]),
+                input_fastq2 = select_first([input_fq2, []]),
                 container = bbtools_container,
                 memory = stage_paired_mem,
                 cpu = stage_paired_cpu,
@@ -61,6 +63,7 @@ workflow ShortReadsQC {
             container = bbtools_container,
             memory= rqc_mem,
             cpu = rqc_cpu,
+            threads = rqc_threads,
             run_mins = rqc_run_mins
     }
     
@@ -106,20 +109,20 @@ task stage_single {
     }
 
     command <<<
+    command time -v bash <<'EOF'
     set -oeu pipefail
-
-    for file in ~{sep= ' ' input_file}; do
-        temp=$(basename $file)
-        if [ $( echo $file|egrep -c "https*:") -gt 0 ] ; then
-            wget $file -O $temp
+    for file in ~{sep= " " input_file}; do
+        temp=$(basename "$file")
+        if echo "$file" | egrep -q "https*:"; then
+            wget "$file" -O "$temp"
         else
-            ln -s $file $temp || cp $file $temp
+            ln -s "$file" "$temp" || cp "$file" "$temp"
         fi
-        cat $temp >> ~{target}
+        cat "$temp" >> ~{target}
     done
-
     # Capture the start time
     date --iso-8601=seconds > start.txt
+    EOF
     >>>
 
    output {
@@ -150,13 +153,13 @@ task stage_interleave {
         Int    run_mins
    }
 
-   command <<<
-       set -oeu pipefail
-       
-       # load wdl array to shell array
-       FQ1_ARRAY=(~{sep=" " input_fastq1})
-       FQ2_ARRAY=(~{sep=" " input_fastq2})
-       
+    command <<<
+        command time -v bash <<'EOF'
+        set -oeu pipefail
+        # load wdl array to shell array
+        FQ1_ARRAY=(~{sep=" " input_fastq1})
+        FQ2_ARRAY=(~{sep=" " input_fastq2})
+
         for (( i = 0; i < ~{file_num}; i++ )) ;do
             fq1_name=$(basename ${FQ1_ARRAY[$i]})
             fq2_name=$(basename ${FQ2_ARRAY[$i]})
@@ -176,9 +179,9 @@ task stage_interleave {
 
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory} verifypaired=t in=~{output_interleaved}
-
         # Capture the start time
         date --iso-8601=seconds > start.txt
+        EOF
     >>>
 
     output {
@@ -204,7 +207,8 @@ task rqcfilter {
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
         Int     cpu
-        Int     threads = cpu * 2
+        Int?    threads
+        # Int     threads = cpu * 2
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -212,14 +216,15 @@ task rqcfilter {
         String  filename_stat_json="filtered/filterStats.json"
         String  filename_reproduce="filtered/reproduce.sh"
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-        String  jvm_threads=select_first([threads,system_cpu])
+        String  jvm_threads=select_first([threads,cpu*2, system_cpu])
         String? chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
         Int     run_mins
     }
 
     command <<<
 
-        export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
+        # export TIME="time result\ncmd:%C\nreal %es\nuser %Us \nsys  %Ss \nmemory:%MKB \ncpu %P"
+        command time -v bash <<'EOF'
         set -euo pipefail
 
         rqcfilter2.sh \
@@ -267,7 +272,7 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
-
+        EOF
     >>>
 
     output {
@@ -298,12 +303,14 @@ task make_info_file {
     }
 
     command<<<
+        command time -v bash <<'EOF'
         set -oeu pipefail
         sed -n 2,5p ~{info_file} 2>&1 | \
           perl -ne 's:in=/.*/(.*) :in=$1:; s/#//; s/BBTools/BBTools(1)/; print;' > \
          ~{prefix}_readsQC.info
         echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> \
          ~{prefix}_readsQC.info
+        EOF
     >>>
 
     output {
@@ -331,7 +338,7 @@ task finish_rqc {
     }
 
     command<<<
-
+        command time -v bash <<'EOF'
         set -oeu pipefail
         end=`date --iso-8601=seconds`
         # Generate QA objects
@@ -339,9 +346,9 @@ task finish_rqc {
         ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
 
-       # Generate stats but rename some fields until the script is fixed.
-       /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
-
+        # Generate stats but rename some fields until the script is fixed.
+        /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
+        EOF
     >>>
 
     output {
