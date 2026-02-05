@@ -8,11 +8,11 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[String]? input_files
-        Array[String]? input_fq1
-        Array[String]? input_fq2
-        Boolean interleaved
-        String  database="/refdata/"
+        Array[File]?? input_files
+        Array[File]?? input_fq1
+        Array[File]?? input_fq2
+        Boolean  interleaved
+        String   database="/refdata/"
         Boolean? chastityfilter_flag
         # runtime parameters for JAWS
         String  stage_single_mem = "100MB"
@@ -22,7 +22,7 @@ workflow ShortReadsQC {
         Int     stage_paired_cpu = 2
         Int     stage_paired_run_mins = 30
         Int     rqc_cpu = 8
-        Int     rqc_mem = 180
+        Int      rqc_mem = 180
         Int     rqc_run_mins = 1800
         String  make_info_mem = "100MB"
         Int     make_info_cpu = 1
@@ -30,6 +30,7 @@ workflow ShortReadsQC {
         String  finish_rqc_mem = "100MB"
         Int     finish_rqc_cpu = 1
         Int     finish_rqc_run_mins = 5
+        Boolean? chastityfilter_flag
     }
 
     if (interleaved && defined(input_files)) {
@@ -59,12 +60,13 @@ workflow ShortReadsQC {
    call rqcfilter as qc {
         input:
             input_fastq = if interleaved then stage_single.reads_fastq else stage_interleave.reads_fastq,
+            threads = rqc_threads,
             database = database,
             chastityfilter_flag = chastityfilter_flag,
             container = bbtools_container,
             memory= rqc_mem,
             cpu = rqc_cpu,
-            run_mins = rqc_run_mins
+            run_mins = rqc_run_mins,
     }
     
     call make_info_file {
@@ -101,7 +103,7 @@ workflow ShortReadsQC {
 task stage_single {
     input {
         String target="raw.fastq.gz"
-        Array[File] input_file
+        Array[File]? input_file
         String container
         String memory
         Int    cpu
@@ -144,9 +146,9 @@ task stage_interleave {
         String target_reads_1="raw_reads_1.fastq.gz"
         String target_reads_2="raw_reads_2.fastq.gz"
         String output_interleaved="raw.fastq.gz"
-        Array[String]  input_fastq1
-        Array[String]  input_fastq2
-        Int file_num = length(input_fastq1)
+        Array[File]? input_fastq1
+        Array[File]? input_fastq2
+        Int file_num = length(select_first([input_fastq1, []]))
         String container
         Int    memory
         Int    cpu
@@ -205,9 +207,9 @@ task rqcfilter {
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Int     memory
-        Int     xmxmem = floor(memory * 0.75)
+        Int     xmxmem = floor(memory * 0.85)
         Int     cpu
-        Int     threads = cpu * 2
+        Int?    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
@@ -270,6 +272,8 @@ task rqcfilter {
         with open("~{filename_stat_json}", 'w') as outfile:
             json.dump(d, outfile)
         CODE
+
+    >>>
 
     >>>
 

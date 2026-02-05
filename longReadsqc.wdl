@@ -12,6 +12,7 @@ workflow LongReadsQC {
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
+        String  container="bfoster1/img-omics:0.1.9"
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
         String  bbtools_container="microbiomedata/bbtools:39.03"
         String  jq_container="microbiomedata/jq:1.6"
@@ -19,16 +20,22 @@ workflow LongReadsQC {
         # String  prefix = basename(file)
     }
 
+call stage_longread {
+    input:
+        file = file,
+        container = container
+}
+
     call pbmarkdup {
-        input: 
-            in_file = file,
+        input:
+            in_file = stage_longread.reads_fastq,
             prefix = prefix,
             # outdir = outdir,
             log_level = log_level,
             rmdup = rmdup,
             container = pbmarkdup_container,
             overwrite = overwrite
-    }
+        }
 
     call icecreamfilter {
         input:
@@ -87,9 +94,47 @@ workflow LongReadsQC {
 
 }
 
+task stage_longread {
+    input{
+        String container
+        String target="raw.fastq.gz"
+        String file
+    }
+
+    command <<<
+
+        set -oeu pipefail
+
+        temp=$(basename "~{file}")
+
+        if [ $(echo "~{file}" | egrep -c "https*:") -gt 0 ] ; then
+            wget "~{file}" -O "$temp"
+        else
+            ln -s "~{file}" "$temp" || cp "~{file}" "$temp"
+        fi
+        ln -sf "$temp" "~{target}" || cp "$temp" "~{target}"
+
+        # Capture the start time
+        date --iso-8601=seconds > start.txt
+
+    >>>
+
+    output{
+        File reads_fastq = "~{target}"
+        String start = read_string("start.txt")
+    }
+
+    runtime {
+        memory: "1 GiB"
+        cpu: 2
+        maxRetries: 1
+        docker: container
+    }
+}
+
 task pbmarkdup {
     input {
-        String   in_file
+        File   in_file
         String   prefix
         String   out_file = prefix + ".pbmarkdup.fq"
         String?  log_level
@@ -125,6 +170,8 @@ task pbmarkdup {
         Array[Array[String]] input_stats = read_tsv("input_size.txt")      }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -168,6 +215,8 @@ task icecreamfilter {
     }
 
     runtime {
+        memory: "16 GiB"
+        cpu: 2
         docker: container
         continueOnReturnCode: true
     }
@@ -199,7 +248,7 @@ task bbdukEnds {
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
         
-        grep -v _JAVA_OPTIONS stderr > bbdukEnds_stats.json
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukEnds_stats.json
 
     >>>
 
@@ -209,6 +258,8 @@ task bbdukEnds {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }
@@ -237,8 +288,8 @@ task bbdukReads {
         ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
         ~{"in=" + in_file} \
         ~{"out=" + out_file} 
-        
-        grep -v _JAVA_OPTIONS stderr >  bbdukReads_stats.json
+
+        grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukReads_stats.json
 
         #echo -e "outputReads\toutputBases" > output_size.txt
         seqtk size ~{out_file} > output_size.txt
@@ -251,6 +302,8 @@ task bbdukReads {
     }
 
     runtime {
+        memory: "32 GiB"
+        cpu: 4
         docker: container
         continueOnReturnCode: true
     }

@@ -1,0 +1,6 @@
+{
+    "rqcfilter.input_files": ["https://portal.nersc.gov/project/m3408//test_data/SRR13128014.pacbio.subsample/SRR13128014.pacbio.subsample.ccs.fastq.gz"],
+    "rqcfilter.proj": "nmdc:xxxxxxx",
+    "rqcfilter.interleaved": true,
+    "rqcfilter.shortRead": false
+}
