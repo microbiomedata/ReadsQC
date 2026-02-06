@@ -8,6 +8,9 @@ workflow sra {
         Int? filesize_restrict
         Int? runs_restrict
         String container = "ghcr.io/lanl-bioinformatics/edge_sra2fastq:1.6.3"
+        Int memory = 16
+        Int cpu = 2
+        Int run_mins = 60
     }
 
     call sra2fastq{
@@ -18,7 +21,10 @@ workflow sra {
         platform_restrict = platform_restrict,
         filesize_restrict = filesize_restrict,
         runs_restrict = runs_restrict,
-        container = container
+        container = container,
+        memory = memory,
+        cpu = cpu,
+        run_mins = run_mins
 
     }
     output {
@@ -41,6 +47,9 @@ task sra2fastq {
         Int? filesize_restrict
         Int? runs_restrict
         String container
+        Int memory
+        Int cpu 
+        Int run_mins 
     }
     command <<<
 
@@ -90,9 +99,11 @@ task sra2fastq {
     }
 
     runtime {
-        memory: "16 GiB"
-        cpu: 2
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         continueOnReturnCode: true
+        maxRetries: 1
     }
 }
