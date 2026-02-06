@@ -3,9 +3,9 @@ version 1.0
 
 workflow ShortReadsQC {
     input {
-        String  container="bfoster1/img-omics:0.1.9"
-        String  bbtools_container="microbiomedata/bbtools:38.96"
-        String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
+        # String  container="bfoster1/img-omics:0.1.9"
+        String  bbtools_container = "bryce911/bbtools:39.65"
+        String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
         Array[File]? input_files
@@ -22,7 +22,7 @@ workflow ShortReadsQC {
         Int stage_paired_cpu = 2
         Int stage_paired_run_mins = 30
         Int rqc_cpu = 16
-        Int? rqc_threads
+        Int? rqc_threads        # typically the same as rqc_cpu
         Int rqc_mem = 180
         Int rqc_run_mins = 500
         Int json_mem = 1
@@ -40,7 +40,7 @@ workflow ShortReadsQC {
         call stage_single {
             input:
                 input_file = select_first([input_files, []]),
-                container = container,
+                container = workflowmeta_container,
                 memory=stage_single_mem,
                 cpu = stage_single_cpu,
                 run_mins = stage_single_run_mins
@@ -75,7 +75,7 @@ workflow ShortReadsQC {
     call stats_jsons {
         input:
             filtered_stats = qc.stat,
-            container = workflow_container,
+            container = workflowmeta_container,
             memory=json_mem,
             cpu = json_cpu,
             run_mins = json_run_mins
@@ -85,7 +85,7 @@ workflow ShortReadsQC {
         input: 
             info_file = qc.info_file,
             prefix = prefix,
-            container = container,
+            container = workflowmeta_container,
             memory=make_info_mem,
             cpu = make_info_cpu,
             run_mins = make_info_run_mins
@@ -99,7 +99,7 @@ workflow ShortReadsQC {
             filtered_stats2 = qc.stat2,
             filter_json = stats_jsons.filter_stats,
             qa_json = stats_jsons.qa_stats,
-            container=workflow_container,
+            container=workflowmeta_container,
             memory=finish_rqc_mem,
             cpu = finish_rqc_cpu,
             run_mins = finish_rqc_run_mins

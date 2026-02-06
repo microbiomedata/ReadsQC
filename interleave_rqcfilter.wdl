@@ -3,9 +3,9 @@ version 1.0
 
 workflow nmdc_rqcfilter {
     input{
-        String  container="bfoster1/img-omics:0.1.9"
-        String  bbtools_container="microbiomedata/bbtools:38.96"
-        String  workflowmeta_container="microbiomedata/workflowmeta:1.1.1"
+        # String  container="bfoster1/img-omics:0.1.9"
+        String  bbtools_container = "bryce911/bbtools:39.65"
+        String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
         Array[String]  input_fastq1
@@ -17,7 +17,7 @@ workflow nmdc_rqcfilter {
         Int stage_cpu = 2
         Int stage_run_mins = 30
         Int rqc_cpu = 16
-        Int? rqc_threads
+        Int? rqc_threads        # typically the same as rqc_cpu
         Int rqc_mem = 180
         Int rqc_run_mins = 500
         Int json_mem = 1
@@ -64,7 +64,7 @@ workflow nmdc_rqcfilter {
         input: 
             info_file = qc.info_file,
             prefix = prefix,
-            container=container,
+            container=workflowmeta_container,
             memory=make_info_mem,
             cpu = make_info_cpu,
             run_mins = make_info_run_mins
