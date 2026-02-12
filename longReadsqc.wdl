@@ -429,12 +429,13 @@ task finish_rqc {
         Int    cpu
         Int    run_mins
     }
+    # changed order to match wf automation
     Map [String, Int] stats_map = { 
                             "input_read_bases" : input_stats[1],
                             "input_read_count" : input_stats[0], 
-                            "output_read_bases" : output_stats[1]
-                            "output_read_count" : output_stats[0],
-                        } # changed order to match wf automation
+                            "output_read_bases" : output_stats[1],
+                            "output_read_count" : output_stats[0]
+                        } 
     File stats_json = write_json(stats_map)
 
     command<<<
