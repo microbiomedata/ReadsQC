@@ -323,8 +323,8 @@ task stats_jsons {
         qa = {
             "input_read_bases": d['inputBases'],
             "input_read_count": d['inputReads'],
-            "output_read_bases": d['outputBases']
-            "output_read_count": d['outputReads'],
+            "output_read_bases": d['outputBases'],
+            "output_read_count": d['outputReads']
         }
 
         with open("~{qa_stats_json}", 'w') as outfile:
