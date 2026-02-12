@@ -68,10 +68,11 @@ The workflow from GitHub uses all the listed docker images to run all third-part
 The workflow is available in GitHub: https://github.com/microbiomedata/ReadsQC
 
 And the Docker images are available below: 
-- `bryce911/bbtools:39.65 <https://hub.docker.com/r/bryce911/bbtools>`
-- `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`
-- `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`
-- `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`
+
+- `bryce911/bbtools:39.65 <https://hub.docker.com/r/bryce911/bbtools>`_
+- `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`_
+- `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`_
+- `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`_
 
 
 Requirements for Execution 
@@ -235,7 +236,7 @@ Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `h
 Version History
 ---------------
 
-Please refer to the `GitHub Release <https://github.com/microbiomedata/ReadsQC/releases>` page for more details.  
+Please refer to the `GitHub Release <https://github.com/microbiomedata/ReadsQC/releases>`_ page for more details.  
 
 - 1.0.22 (release date **02/2026**)
 - 1.0.21 (release date **01/29/2026**)
