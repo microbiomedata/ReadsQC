@@ -25,10 +25,8 @@ This workflow performs quality control on long reads from PacBio. The workflow p
 ## The Docker image and Dockerfile can be found here
 
 - [bryce911/bbtools:39.65](https://hub.docker.com/r/bryce911/bbtools)
-- [bfoster1/img-omics:0.1.9](https://hub.docker.com/r/bfoster1/img-omics)
 - [microbiomedata/pbmarkdup:1.1](https://hub.docker.com/r/microbiomedata/pbmarkdup)
 - [microbiomedata/bbtools:39.03](https://hub.docker.com/r/microbiomedata/bbtools)
-- [microbiomedata/jq:1.6](https://hub.docker.com/r/microbiomedata/jq)
 - [microbiomedata/workflowmeta:1.1.1](https://hub.docker.com/r/microbiomedata/workflowmeta)
 
 

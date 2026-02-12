@@ -69,10 +69,8 @@ The workflow is available in GitHub: https://github.com/microbiomedata/ReadsQC
 
 And the Docker images are available below: 
 - `bryce911/bbtools:39.65 <https://hub.docker.com/r/bryce911/bbtools>`
-- `bfoster1/img-omics:0.1.9 <https://hub.docker.com/r/bfoster1/img-omics>`
 - `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`
 - `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`
-- `microbiomedata/jq:1.6 <https://hub.docker.com/r/microbiomedata/jq>`
 - `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`
 
 
@@ -237,7 +235,13 @@ Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `h
 Version History
 ---------------
 
-- 1.0.14-alpha.1 (release date **5/15/2025**; previous versions: 1.0.12)
+Please refer to the `GitHub Release <https://github.com/microbiomedata/ReadsQC/releases>` page for more details.  
+
+- 1.0.22 (release date **02/2026**)
+- 1.0.21 (release date **01/29/2026**)
+- 1.0.20 (release date **11/3/2026**)
+- 1.0.14-alpha.2 (release date **11/19/2025**)
+- 1.0.14-alpha.1 (release date **5/15/2025**)
 
 
 Point of contact
