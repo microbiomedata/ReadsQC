@@ -3,7 +3,6 @@ version 1.0
 
 workflow nmdc_rqcfilter {
     input{
-        # String  container="bfoster1/img-omics:0.1.9"
         String  bbtools_container = "bryce911/bbtools:39.65"
         String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
@@ -88,7 +87,7 @@ workflow nmdc_rqcfilter {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
-        File qa_json = finish_rqc.qa_stats_final
+        File stats = finish_rqc.qa_stats_final      # renamed to match workflow automation
         File filter_json = finish_rqc.filter_json_final
     }
 }
@@ -251,17 +250,26 @@ task stats_jsons {
         f = open("~{filtered_stats}",'r')
         d = dict()
         for line in f:
-            if not line.rstrip():continue
+            if not line.rstrip():
+                continue
             key,value=line.rstrip().split('=')
             d[key]=float(value) if 'Ratio' in key else int(value)
 
         with open("~{filter_stats_json}", 'w') as outfile:
-            json.dump(d, outfile)
+            json.dump(d, outfile, indent = 2)
+        
+        # rename some fields for wf automation.
+        qa = {
+            "input_read_bases": d['inputBases'],
+            "input_read_count": d['inputReads'],
+            "output_read_bases": d['outputBases']
+            "output_read_count": d['outputReads'],
+        }
+
+        with open("~{qa_stats_json}", 'w') as outfile:
+            json.dump(qa, outfile, indent = 2)
+
         CODE
-
-        # Generate stats but rename some fields until the script is fixed.
-        /scripts/rqcstats.py ~{filtered_stats} > ~{qa_stats_json}
-
         EOF
     >>>
     output {

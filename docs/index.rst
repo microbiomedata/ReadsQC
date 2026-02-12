@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.14-alpha.1)
+Reads QC Workflow
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -67,7 +67,14 @@ The workflow from GitHub uses all the listed docker images to run all third-part
 
 The workflow is available in GitHub: https://github.com/microbiomedata/ReadsQC
 
-The Docker image is available in DockerHub: https://hub.docker.com/r/microbiomedata/bbtools.
+And the Docker images are available below: 
+- `bryce911/bbtools:39.65 <https://hub.docker.com/r/bryce911/bbtools>`
+- `bfoster1/img-omics:0.1.9 <https://hub.docker.com/r/bfoster1/img-omics>`
+- `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`
+- `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`
+- `microbiomedata/jq:1.6 <https://hub.docker.com/r/microbiomedata/jq>`
+- `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`
+
 
 Requirements for Execution 
 --------------------------
@@ -90,7 +97,7 @@ Workflow Dependencies
 Third party software (This is included in the Docker image.)  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `BBTools v38.96 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+- `BBTools v39.63 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
 Requisite database
 ~~~~~~~~~~~~~~~~~~

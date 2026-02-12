@@ -3,7 +3,6 @@ version 1.0
 
 workflow ShortReadsQC {
     input {
-        # String  container="bfoster1/img-omics:0.1.9"
         String  bbtools_container = "bryce911/bbtools:39.65"
         String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
@@ -319,11 +318,19 @@ task stats_jsons {
 
         with open("~{filter_stats_json}", 'w') as outfile:
             json.dump(d, outfile)
+        
+        # rename some fields for wf automation.
+        qa = {
+            "input_read_bases": d['inputBases'],
+            "input_read_count": d['inputReads'],
+            "output_read_bases": d['outputBases']
+            "output_read_count": d['outputReads'],
+        }
+
+        with open("~{qa_stats_json}", 'w') as outfile:
+            json.dump(qa, outfile, indent = 2)
+
         CODE
-
-        # Generate stats but rename some fields until the script is fixed.
-        /scripts/rqcstats.py ~{filtered_stats} > ~{qa_stats_json}
-
         EOF
     >>>
     output {

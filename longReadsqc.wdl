@@ -12,10 +12,9 @@ workflow LongReadsQC {
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
-        String  container="bfoster1/img-omics:0.1.9"
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
         String  bbtools_container="microbiomedata/bbtools:39.03"
-        String  jq_container="microbiomedata/jq:1.6"
+        String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         # String  outdir 
         # String  prefix = basename(file)
         Int stage_mem = 1
@@ -44,7 +43,7 @@ workflow LongReadsQC {
     call stage_longread {
         input:
             file = file,
-            container = container,
+            container = workflowmeta_container,
             memory=stage_mem,
             cpu = stage_cpu,
             run_mins = stage_run_mins
@@ -111,7 +110,7 @@ workflow LongReadsQC {
 
     call finish_rqc {
         input: 
-            container = jq_container,
+            container = workflowmeta_container,
             prefix = prefix,
             filtered = bbdukReads.out_fastq,
             pbmarkdup_stats = pbmarkdup.stats,
@@ -431,11 +430,11 @@ task finish_rqc {
         Int    run_mins
     }
     Map [String, Int] stats_map = { 
-                            "input_read_count" : input_stats[0], 
                             "input_read_bases" : input_stats[1],
-                            "output_read_count" : output_stats[0],
+                            "input_read_count" : input_stats[0], 
                             "output_read_bases" : output_stats[1]
-                        }
+                            "output_read_count" : output_stats[0],
+                        } # changed order to match wf automation
     File stats_json = write_json(stats_map)
 
     command<<<
@@ -449,7 +448,8 @@ task finish_rqc {
         ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
         ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
         
-        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq > ~{prefix}_stats.json
+        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq . > ~{prefix}_stats.json
+        # jq version 1.5-1-a5b5cbe needs to be called with default filter options "."
         
         DUP=`grep TOTAL ~{prefix}_pbmarkdupStats.txt | awk  '{print $5}'`
         INVERTED=`jq .Reads_Filtered ~{prefix}_icecreamStats.json`
