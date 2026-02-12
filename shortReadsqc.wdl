@@ -317,7 +317,7 @@ task stats_jsons {
             d[key]=float(value) if 'Ratio' in key else int(value)
 
         with open("~{filter_stats_json}", 'w') as outfile:
-            json.dump(d, outfile)
+            json.dump(d, outfile, indent = 2)
         
         # rename some fields for wf automation.
         qa = {
