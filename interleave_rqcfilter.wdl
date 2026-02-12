@@ -15,7 +15,7 @@ workflow nmdc_rqcfilter {
         Int stage_mem = 10
         Int stage_cpu = 2
         Int stage_run_mins = 30
-        Int rqc_cpu = 16
+        Int rqc_cpu = 32
         Int? rqc_threads        # typically the same as rqc_cpu
         Int rqc_mem = 180
         Int rqc_run_mins = 500
