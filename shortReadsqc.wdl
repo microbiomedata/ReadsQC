@@ -23,7 +23,7 @@ workflow ShortReadsQC {
         Int rqc_cpu = 32
         Int? rqc_threads        # typically the same as rqc_cpu
         Int rqc_mem = 180
-        Int rqc_run_mins = 500
+        Int rqc_run_mins = 300
         Int json_mem = 1
         Int json_cpu = 1
         Int json_run_mins = 5
@@ -39,7 +39,7 @@ workflow ShortReadsQC {
         call stage_single {
             input:
                 input_file = select_first([input_files, []]),
-                container = workflowmeta_container,
+                container = bbtools_container,
                 memory=stage_single_mem,
                 cpu = stage_single_cpu,
                 run_mins = stage_single_run_mins
@@ -123,19 +123,23 @@ task stage_single {
         Int    cpu
         Int    run_mins
     }
-   command <<<
+    command <<<
         time bash <<'EOF'
         set -oeu pipefail
         for file in ~{sep= " " input_file}; do
-            temp=$(basename "$file")
+            temp=$(basename "$file") 
             if echo "$file" | egrep -q "https*:"; then
-                wget "$file" -O "$temp"
+                wget "$file" -O "$temp" || rm -f "$temp"
             else
                 ln -s "$file" "$temp" || cp "$file" "$temp"
             fi
             cat "$temp" >> ~{target}
         done
-        # Capture the start time
+
+        # Validate FASTQ file
+        [ -s ~{target} ] || { echo "Error: $fq_file is empty or missing" >&2; exit 1; }
+        [ "$(zcat -f ~{target} | head -c 1)" = "@" ] || { echo "Error: $fq_file invalid FASTQ (no @ header)" >&2; exit 1; }
+
         date --iso-8601=seconds > start.txt
         EOF
     >>>
@@ -170,31 +174,38 @@ task stage_interleave {
 
     command <<<
         time bash <<'EOF'
-        set -oeu pipefail
+        set -euo pipefail
+
         # load wdl array to shell array
         FQ1_ARRAY=(~{sep=" " input_fastq1})
         FQ2_ARRAY=(~{sep=" " input_fastq2})
-
+        
         for (( i = 0; i < ~{file_num}; i++ )) ;do
             fq1_name=$(basename ${FQ1_ARRAY[$i]})
             fq2_name=$(basename ${FQ2_ARRAY[$i]})
             if [ $( echo ${FQ1_ARRAY[$i]} | egrep -c "https*:") -gt 0 ] ; then
-                wget ${FQ1_ARRAY[$i]} -O $fq1_name
-                wget ${FQ2_ARRAY[$i]} -O $fq2_name
+                wget --no-check-certificate ${FQ1_ARRAY[$i]} -O $fq1_name || rm -f $fq1_name
+                wget --no-check-certificate ${FQ2_ARRAY[$i]} -O $fq2_name || rm -f $fq2_name
             else
-                ln -s ${FQ1_ARRAY[$i]} $fq1_name || cp ${FQ1_ARRAY[$i]} $fq1_name 
+                ln -s ${FQ1_ARRAY[$i]} $fq1_name || cp ${FQ1_ARRAY[$i]} $fq1_name
                 ln -s ${FQ2_ARRAY[$i]} $fq2_name || cp ${FQ2_ARRAY[$i]} $fq2_name
             fi
-            
+
             cat $fq1_name  >> ~{target_reads_1}
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory}G trimreaddescription=t in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
+        # Validate FASTQ files (works for both .gz and uncompressed)
+        for fq_file in ~{target_reads_1} ~{target_reads_2}; do
+            [ -s "$fq_file" ] || { echo "Error: $fq_file is empty or missing" >&2; exit 1; }
+            [ "$(zcat -f "$fq_file" | head -c 1)" = "@" ] || { echo "Error: $fq_file invalid FASTQ (no @ header)" >&2; exit 1; }
+        done
 
+        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
-
+        
         # Capture the start time
         date --iso-8601=seconds > start.txt
         EOF

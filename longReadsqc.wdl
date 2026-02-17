@@ -22,7 +22,7 @@ workflow LongReadsQC {
         Int stage_run_mins = 30
         Int pbmarkdup_mem = 32
         Int pbmarkdup_cpu = 4
-        Int pbmarkdup_run_mins = 500
+        Int pbmarkdup_run_mins = 300
         Int icecream_mem = 16
         Int icecream_cpu = 2
         Int icecream_run_mins = 300

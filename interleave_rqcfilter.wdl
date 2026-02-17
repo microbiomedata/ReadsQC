@@ -18,7 +18,7 @@ workflow nmdc_rqcfilter {
         Int rqc_cpu = 32
         Int? rqc_threads        # typically the same as rqc_cpu
         Int rqc_mem = 180
-        Int rqc_run_mins = 500
+        Int rqc_run_mins = 300
         Int json_mem = 1
         Int json_cpu = 1
         Int json_run_mins = 5
@@ -127,6 +127,12 @@ task stage {
             
             cat $fq1_name  >> ~{target_reads_1}
             cat $fq2_name  >> ~{target_reads_2}
+        done
+
+        # Validate FASTQ files (works for both .gz and uncompressed)
+        for fq_file in ~{target_reads_1} ~{target_reads_2}; do
+            [ -s "$fq_file" ] || { echo "Error: $fq_file is empty or missing" >&2; exit 1; }
+            [ "$(zcat -f "$fq_file" | head -c 1)" = "@" ] || { echo "Error: $fq_file invalid FASTQ (no @ header)" >&2; exit 1; }
         done
 
         reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
