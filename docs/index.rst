@@ -69,7 +69,7 @@ The workflow is available in GitHub: https://github.com/microbiomedata/ReadsQC
 
 And the Docker images are available below: 
 
-- `bryce911/bbtools:39.65 <https://hub.docker.com/r/bryce911/bbtools>`_
+- `bryce911/bbtools:39.80 <https://hub.docker.com/r/bryce911/bbtools>`_
 - `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`_
 - `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`_
 - `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`_
@@ -96,7 +96,7 @@ Workflow Dependencies
 Third party software (This is included in the Docker image.)  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `BBTools v39.63 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+- `BBTools v39.80 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
 Requisite database
 ~~~~~~~~~~~~~~~~~~

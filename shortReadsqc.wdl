@@ -3,7 +3,7 @@ version 1.0
 
 workflow ShortReadsQC {
     input {
-        String  bbtools_container = "bryce911/bbtools:39.65"
+        String  bbtools_container = "bryce911/bbtools:39.80"
         String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
