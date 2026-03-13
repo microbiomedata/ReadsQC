@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.14-alpha.1)
+Reads QC Workflow
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -67,7 +67,13 @@ The workflow from GitHub uses all the listed docker images to run all third-part
 
 The workflow is available in GitHub: https://github.com/microbiomedata/ReadsQC
 
-The Docker image is available in DockerHub: https://hub.docker.com/r/microbiomedata/bbtools.
+And the Docker images are available below: 
+
+- `bryce911/bbtools:39.80 <https://hub.docker.com/r/bryce911/bbtools>`_
+- `microbiomedata/pbmarkdup:1.1 <https://hub.docker.com/r/microbiomedata/pbmarkdup>`_
+- `microbiomedata/bbtools:39.03 <https://hub.docker.com/r/microbiomedata/bbtools>`_
+- `microbiomedata/workflowmeta:1.1.1 <https://hub.docker.com/r/microbiomedata/workflowmeta>`_
+
 
 Requirements for Execution 
 --------------------------
@@ -90,7 +96,7 @@ Workflow Dependencies
 Third party software (This is included in the Docker image.)  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `BBTools v38.96 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+- `BBTools v39.80 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
 Requisite database
 ~~~~~~~~~~~~~~~~~~
@@ -230,7 +236,13 @@ Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `h
 Version History
 ---------------
 
-- 1.0.14-alpha.1 (release date **5/15/2025**; previous versions: 1.0.12)
+Please refer to the `GitHub Release <https://github.com/microbiomedata/ReadsQC/releases>`_ page for more details.  
+
+- 1.0.22 (release date **02/2026**)
+- 1.0.21 (release date **01/29/2026**)
+- 1.0.20 (release date **11/3/2026**)
+- 1.0.14-alpha.2 (release date **11/19/2025**)
+- 1.0.14-alpha.1 (release date **5/15/2025**)
 
 
 Point of contact

@@ -12,19 +12,42 @@ workflow LongReadsQC {
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
-        String  container="bfoster1/img-omics:0.1.9"
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
         String  bbtools_container="microbiomedata/bbtools:39.03"
-        String  jq_container="microbiomedata/jq:1.6"
+        String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         # String  outdir 
         # String  prefix = basename(file)
+        Int stage_mem = 1
+        Int stage_cpu = 2
+        Int stage_run_mins = 30
+        Int pbmarkdup_mem = 32
+        Int pbmarkdup_cpu = 4
+        Int pbmarkdup_run_mins = 300
+        Int icecream_mem = 16
+        Int icecream_cpu = 2
+        Int icecream_run_mins = 300
+        Int bbdukEnds_mem = 32
+        Int bbdukEnds_cpu = 4
+        Int bbdukEnds_run_mins = 300
+        Int bbdukReads_mem = 32
+        Int bbdukReads_cpu = 4
+        Int bbdukReads_run_mins = 300
+        Int make_info_mem = 1
+        Int make_info_cpu = 1
+        Int make_info_run_mins = 5
+        Int finish_rqc_mem = 1
+        Int finish_rqc_cpu = 1
+        Int finish_rqc_run_mins = 5
     }
 
-call stage_longread {
-    input:
-        file = file,
-        container = container
-}
+    call stage_longread {
+        input:
+            file = file,
+            container = workflowmeta_container,
+            memory=stage_mem,
+            cpu = stage_cpu,
+            run_mins = stage_run_mins
+    }
 
     call pbmarkdup {
         input:
@@ -34,14 +57,20 @@ call stage_longread {
             log_level = log_level,
             rmdup = rmdup,
             container = pbmarkdup_container,
-            overwrite = overwrite
+            overwrite = overwrite,
+            memory=pbmarkdup_mem,
+            cpu = pbmarkdup_cpu,
+            run_mins = pbmarkdup_run_mins
         }
 
     call icecreamfilter {
         input:
             in_file = pbmarkdup.out_fastq,
             prefix = prefix,
-            container = bbtools_container
+            container = bbtools_container,
+            memory=icecream_mem,
+            cpu = icecream_cpu,
+            run_mins = icecream_run_mins
             # outdir = outdir
     }
 
@@ -51,7 +80,10 @@ call stage_longread {
             prefix = prefix,
             container = bbtools_container,
             # outdir = outdir,
-            reference = reference
+            reference = reference,
+            memory=bbdukEnds_mem,
+            cpu = bbdukEnds_cpu,
+            run_mins = bbdukEnds_run_mins
     }
 
     call bbdukReads {
@@ -60,19 +92,25 @@ call stage_longread {
             prefix = prefix,
             container = bbtools_container,
             # outdir = outdir,
-            reference = reference
+            reference = reference,
+            memory=bbdukReads_mem,
+            cpu = bbdukReads_cpu,
+            run_mins = bbdukReads_run_mins
     }
 
     call make_info_file {
         input:
             prefix = prefix,
-            bbtools_container=bbtools_container, 
-            pbmarkdup_log = pbmarkdup.stats
+            container=bbtools_container, 
+            pbmarkdup_log = pbmarkdup.stats,
+            memory=make_info_mem,
+            cpu = make_info_cpu,
+            run_mins = make_info_run_mins
     }
 
     call finish_rqc {
         input: 
-            container = jq_container,
+            container = workflowmeta_container,
             prefix = prefix,
             filtered = bbdukReads.out_fastq,
             pbmarkdup_stats = pbmarkdup.stats,
@@ -80,7 +118,10 @@ call stage_longread {
             bbdukEnds_stats = bbdukEnds.stats,
             bbdukReads_stats = bbdukReads.stats,
             input_stats = flatten(pbmarkdup.input_stats),
-            output_stats = flatten(bbdukReads.output_stats)
+            output_stats = flatten(bbdukReads.output_stats),
+            memory=finish_rqc_mem,
+            cpu = finish_rqc_cpu,
+            run_mins = finish_rqc_run_mins
     }
 
     output {
@@ -99,10 +140,13 @@ task stage_longread {
         String container
         String target="raw.fastq.gz"
         String file
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
 
         temp=$(basename "~{file}")
@@ -116,7 +160,7 @@ task stage_longread {
 
         # Capture the start time
         date --iso-8601=seconds > start.txt
-
+        EOF
     >>>
 
     output{
@@ -125,10 +169,11 @@ task stage_longread {
     }
 
     runtime {
-        memory: "1 GiB"
-        cpu: 2
-        maxRetries: 1
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
     }
 }
 
@@ -143,10 +188,13 @@ task pbmarkdup {
         String   container
         # String   outdir
         # String   out_file = outdir + "/pbmarkdup.fq"
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
         # mkdir -m 755 -p ~{"outdir"}
         pbmarkdup --version 
@@ -160,7 +208,7 @@ task pbmarkdup {
         gzip ~{out_file}
         #echo -e "inputReads\tinputBases" > input_size.txt
         seqtk size ~{in_file} > input_size.txt
-
+        EOF
     >>>
 
     output {
@@ -170,10 +218,12 @@ task pbmarkdup {
         Array[Array[String]] input_stats = read_tsv("input_size.txt")      }
 
     runtime {
-        memory: "32 GiB"
-        cpu: 4
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         continueOnReturnCode: true
+        maxRetries: 1
     }
 }
 
@@ -188,24 +238,27 @@ task icecreamfilter {
         # String outdir
         # String out_bad = outdir + "/" + prefix + ".icecreamfilter.out_bad.out.gz"
         # String out_good = outdir + "/" + prefix + ".icecreamfilter.out_good.out.gz"
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
         icecreamfinder.sh \
-        jni=t \
-        json=t \
-        ow=t \
-        cq=f \
-        keepshortreads=f \
-        trim=f \
-        ccs=t \
-        stats=triangle.json \
-        ~{"in=" + in_file} \
-        ~{"out=" + out_good} \
-        ~{"outb=" + out_bad} 
-
+            jni=t \
+            json=t \
+            ow=t \
+            cq=f \
+            keepshortreads=f \
+            trim=f \
+            ccs=t \
+            stats=triangle.json \
+            ~{"in=" + in_file} \
+            ~{"out=" + out_good} \
+            ~{"outb=" + out_bad} 
+        EOF
     >>>
 
     output {
@@ -213,12 +266,13 @@ task icecreamfilter {
         File output_bad = "~{out_bad}"
         File stats = "triangle.json"
     }
-
     runtime {
-        memory: "16 GiB"
-        cpu: 2
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         continueOnReturnCode: true
+        maxRetries: 1
     }
 }
 
@@ -231,25 +285,28 @@ task bbdukEnds {
         String container
         # String outdir
         # String out_file = outdir + "/" + prefix + ".bbdukEnds.out.fq.gz"
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
         # bbduk - trim out adapter from read ends
         bbduk.sh \
-        k=20 \
-        mink=12 \
-        edist=1 \
-        mm=f \
-        ktrimtips=60 \
-        json=t \
-        ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
-        ~{"in=" + in_file} \
-        ~{"out=" + out_file} 
+            k=20 \
+            mink=12 \
+            edist=1 \
+            mm=f \
+            ktrimtips=60 \
+            json=t \
+            ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
+            ~{"in=" + in_file} \
+            ~{"out=" + out_file} 
         
         grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukEnds_stats.json
-
+        EOF
     >>>
 
     output {
@@ -258,10 +315,12 @@ task bbdukEnds {
     }
 
     runtime {
-        memory: "32 GiB"
-        cpu: 4
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         continueOnReturnCode: true
+        maxRetries: 1
     }
 }
 
@@ -274,25 +333,29 @@ task bbdukReads {
         String container
         # String outdir
         # String out_file = outdir + "/" + prefix + ".filtered.fq.gz"
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
         # bbduk - removes reads that still contain adapter sequence
         bbduk.sh \
-        k=24 \
-        edist=1 \
-        mm=f \
-        json=t \
-        ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
-        ~{"in=" + in_file} \
-        ~{"out=" + out_file} 
+            k=24 \
+            edist=1 \
+            mm=f \
+            json=t \
+            ~{if (defined(reference)) then "ref=" + reference else "ref=/bbmap/resources/PacBioAdapter.fa" } \
+            ~{"in=" + in_file} \
+            ~{"out=" + out_file} 
 
         grep -v _JAVA_OPTIONS stderr | grep -v 'Changed from' > bbdukReads_stats.json
 
         #echo -e "outputReads\toutputBases" > output_size.txt
         seqtk size ~{out_file} > output_size.txt
+        EOF
     >>>
 
     output {
@@ -302,22 +365,27 @@ task bbdukReads {
     }
 
     runtime {
-        memory: "32 GiB"
-        cpu: 4
         docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         continueOnReturnCode: true
+        maxRetries: 1
     }
 }
 
 task make_info_file {
     input {
         String prefix
-        String bbtools_container
+        String container
         File pbmarkdup_log
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
 
     command <<<
-
+        time bash <<'EOF'
         set -oeu pipefail
 
         bbtools_version=$(grep "Version" /bbmap/README.md | sed 's/#//')
@@ -330,7 +398,7 @@ task make_info_file {
         echo -e "Reads are run through bbduk.sh (BBTools(1)${bbtools_version}) a second time to remove any reads still containing adapter sequences." >> ~{prefix}_readsQC.info
 
         echo -e "\n(1) B. Bushnell: BBTools software package, http://bbtools.jgi.doe.gov/" >> ~{prefix}_readsQC.info
-
+        EOF
     >>>
 
     output {
@@ -338,10 +406,11 @@ task make_info_file {
     }
 
     runtime {
-        memory: "1 GiB"
-        cpu:  1
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
         maxRetries: 1
-        docker: bbtools_container
     }
 }
 
@@ -356,17 +425,21 @@ task finish_rqc {
         File   filtered
         String container
         String prefix
+        Int    memory
+        Int    cpu
+        Int    run_mins
     }
+    # changed order to match wf automation
     Map [String, Int] stats_map = { 
-                            "input_read_count" : input_stats[0], 
                             "input_read_bases" : input_stats[1],
-                            "output_read_count" : output_stats[0],
-                            "output_read_bases" : output_stats[1]
-                        }
+                            "input_read_count" : input_stats[0], 
+                            "output_read_bases" : output_stats[1],
+                            "output_read_count" : output_stats[0]
+                        } 
     File stats_json = write_json(stats_map)
 
     command<<<
-
+        time bash <<'EOF'
         set -oeu pipefail
         #end=$(date --iso-8601=seconds)
         # Generate QA objects
@@ -376,13 +449,15 @@ task finish_rqc {
         ln -s ~{bbdukEnds_stats} ~{prefix}_bbdukEndsStats.json
         ln -s ~{bbdukReads_stats} ~{prefix}_bbdukReadsStats.json
         
-        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq > ~{prefix}_stats.json
+        sed -re 's/:"([0-9]+)"/:\1/g' ~{stats_json} | jq . > ~{prefix}_stats.json
+        # jq version 1.5-1-a5b5cbe needs to be called with default filter options "."
         
         DUP=`grep TOTAL ~{prefix}_pbmarkdupStats.txt | awk  '{print $5}'`
         INVERTED=`jq .Reads_Filtered ~{prefix}_icecreamStats.json`
         ADAPTER1=`jq .readsRemoved ~{prefix}_bbdukEndsStats.json`
         ADAPTER2=`jq .readsRemoved ~{prefix}_bbdukReadsStats.json`
         jq ".Input=.input_read_count | del(.input_read_count, .input_read_bases) | .Output=.output_read_count | del(.output_read_count, .output_read_bases) | .Duplication=$DUP | .Inverted=$INVERTED | .Adapter=$ADAPTER1+$ADAPTER2 "  ~{prefix}_stats.json > ~{prefix}_filterStats2.json
+        EOF
     >>>
 
     output {
@@ -394,7 +469,9 @@ task finish_rqc {
 
     runtime {
         docker: container
-        memory: "1 GiB"
-        cpu:  1
+        memory: "~{memory} GiB"
+        cpu:  cpu
+        runtime_minutes: run_mins
+        maxRetries: 1
     }
 }

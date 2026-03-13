@@ -24,7 +24,11 @@ This workflow performs quality control on long reads from PacBio. The workflow p
 
 ## The Docker image and Dockerfile can be found here
 
-[microbiomedata/bbtools:38.96](https://hub.docker.com/r/microbiomedata/bbtools)
+- [bryce911/bbtools:39.80](https://hub.docker.com/r/bryce911/bbtools)
+- [microbiomedata/pbmarkdup:1.1](https://hub.docker.com/r/microbiomedata/pbmarkdup)
+- [microbiomedata/bbtools:39.03](https://hub.docker.com/r/microbiomedata/bbtools)
+- [microbiomedata/workflowmeta:1.1.1](https://hub.docker.com/r/microbiomedata/workflowmeta)
+
 
 ## Input files
 
@@ -73,4 +77,4 @@ The main QC fastq output is named by prefix_filtered.fastq.gz.
 ```
 
 ## Link to Doc Site
-Please refer [here](https://docs.microbiomedata.org/workflows/chapters/3_Metagenome_Reads_QC/) for more information.
+Please refer to [official documentation](https://docs.microbiomedata.org/workflows/chapters/3_Metagenome_Reads_QC/) for more information.
