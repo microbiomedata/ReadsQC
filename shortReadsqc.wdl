@@ -226,7 +226,7 @@ task stage_interleave {
 
 task rqcfilter {
     input {
-        String?   input_fastq
+        File?   input_fastq
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
