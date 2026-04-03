@@ -67,7 +67,7 @@ workflow ShortReadsQC {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
-        File stats = finish_rqc.json_out
+        File qa_json = finish_rqc.qa_stats_final
     }
 }
 
@@ -310,7 +310,7 @@ task finish_rqc {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
         File filtered_stats2_final = "~{prefix}_filterStats2.txt"
-        File json_out = "~{prefix}_qa_stats.json"
+        File qa_stats_final = "~{prefix}_qaStats.json"
     }
 
     runtime {
