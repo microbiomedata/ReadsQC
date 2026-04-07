@@ -46,6 +46,12 @@ workflow ShortReadsQC {
             chastityfilter_flag = chastityfilter_flag
     }
     
+    call stats_jsons {
+        input:
+            filtered_stats = qc.stat,
+            container = workflow_container
+    }
+
     call make_info_file {
         input: 
             info_file = qc.info_file,
@@ -59,7 +65,9 @@ workflow ShortReadsQC {
             prefix = prefix,
             filtered = qc.filtered,
             filtered_stats = qc.stat,
-            filtered_stats2 = qc.stat2
+            filtered_stats2 = qc.stat2,
+            filter_json = stats_jsons.filter_stats,
+            qa_json = stats_jsons.qa_stats
     }
 
     output {
@@ -67,7 +75,8 @@ workflow ShortReadsQC {
         File filtered_stats_final = finish_rqc.filtered_stats_final
         File filtered_stats2_final = finish_rqc.filtered_stats2_final
         File rqc_info = make_info_file.rqc_info
-        File stats = finish_rqc.json_out
+        File qa_json = finish_rqc.qa_stats_final
+        File filter_json = finish_rqc.filter_json_final
     }
 }
 
@@ -181,7 +190,6 @@ task rqcfilter {
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
         String  filename_stat2="filtered/filterStats2.txt"
-        String  filename_stat_json="filtered/filterStats.json"
         String  filename_reproduce="filtered/reproduce.sh"
         String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
         String  jvm_threads=select_first([threads,system_cpu])
@@ -226,19 +234,6 @@ task rqcfilter {
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
 
-        python <<CODE
-        import json
-        f = open("~{filename_stat}",'r')
-        d = dict()
-        for line in f:
-            if not line.rstrip():continue
-            key,value=line.rstrip().split('=')
-            d[key]=float(value) if 'Ratio' in key else int(value)
-
-        with open("~{filename_stat_json}", 'w') as outfile:
-            json.dump(d, outfile)
-        CODE
-
     >>>
 
     output {
@@ -254,6 +249,53 @@ task rqcfilter {
         docker: container
         memory: "~{memory} GiB"
         cpu:  16
+    }
+}
+
+task stats_jsons {
+    input {
+        File   filtered_stats
+        String filter_stats_json="filterStats.json"
+        String qa_stats_json = "qa_stats.json"
+        String container
+        Int    memory = 1
+    }
+
+    command <<<
+        python <<CODE
+        import json
+        f = open("~{filtered_stats}",'r')
+        d = dict()
+        for line in f:
+            if not line.rstrip():continue
+            key,value=line.rstrip().split('=')
+            d[key]=float(value) if 'Ratio' in key else int(value)
+
+        with open("~{filter_stats_json}", 'w') as outfile:
+            json.dump(d, outfile, indent = 2)
+
+        # rename some fields for wf automation.
+        qa = {
+            "input_read_bases": d['inputBases'],
+            "input_read_count": d['inputReads'],
+            "output_read_bases": d['outputBases'],
+            "output_read_count": d['outputReads']
+        }
+
+        with open("~{qa_stats_json}", 'w') as outfile:
+            json.dump(qa, outfile, indent = 2)
+
+        CODE
+    >>>
+    output {
+        File filter_stats = filter_stats_json
+        File qa_stats = qa_stats_json
+    }
+    runtime {
+        docker: container
+        memory: "~{memory} GiB"
+        cpu:  1
+        maxRetries: 1
     }
 }
 
@@ -289,6 +331,8 @@ task finish_rqc {
         File   filtered_stats
         File   filtered_stats2
         File   filtered
+        File   filter_json
+        File   qa_json
         String container
         String prefix
     }
@@ -301,16 +345,16 @@ task finish_rqc {
         ln -s ~{filtered} ~{prefix}_filtered.fastq.gz
         ln -s ~{filtered_stats} ~{prefix}_filterStats.txt
         ln -s ~{filtered_stats2} ~{prefix}_filterStats2.txt
-
-       # Generate stats but rename some fields until the script is fixed.
-       /scripts/rqcstats.py ~{filtered_stats} > ~{prefix}_qa_stats.json
+        ln -s ~{filter_json} ~{prefix}_filterStats.json
+        ln -s ~{qa_json} ~{prefix}_qaStats.json
 
     >>>
     output {
         File filtered_final = "~{prefix}_filtered.fastq.gz"
         File filtered_stats_final = "~{prefix}_filterStats.txt"
         File filtered_stats2_final = "~{prefix}_filterStats2.txt"
-        File json_out = "~{prefix}_qa_stats.json"
+        File filter_json_final = "~{prefix}_filterStats.json"
+        File qa_stats_final = "~{prefix}_qaStats.json"
     }
 
     runtime {

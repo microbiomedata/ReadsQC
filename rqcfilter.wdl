@@ -61,7 +61,7 @@ workflow rqcfilter{
         File? filtered_stats_final = if (is_shortReads) then ShortReadsQC.filtered_stats_final else LongReadsQC.filtered_stats1
         File? filtered_stats2_final = if (is_shortReads) then ShortReadsQC.filtered_stats2_final else LongReadsQC.filtered_stats2
         File? rqc_info = if (is_shortReads) then ShortReadsQC.rqc_info else LongReadsQC.rqc_info
-        File? stats = if (is_shortReads) then ShortReadsQC.stats else LongReadsQC.stats
+        File? stats = if (is_shortReads) then ShortReadsQC.qa_json else LongReadsQC.stats
     }
 }
 
