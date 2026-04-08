@@ -185,14 +185,12 @@ task rqcfilter {
         Boolean chastityfilter_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
-        Int?    threads
+        Int    threads
         String  filename_outlog="stdout.log"
         String  filename_errlog="stderr.log"
         String  filename_stat="filtered/filterStats.txt"
         String  filename_stat2="filtered/filterStats2.txt"
         String  filename_reproduce="filtered/reproduce.sh"
-        String  system_cpu="$(grep \"model name\" /proc/cpuinfo | wc -l)"
-        String  jvm_threads=select_first([threads,system_cpu])
         String? chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
@@ -204,7 +202,7 @@ task rqcfilter {
         rqcfilter2.sh \
             ~{if (defined(memory)) then "-Xmx" + xmxmem + "G" else "-Xmx60G" }\
             -da \
-            threads=~{jvm_threads} \
+            threads=~{threads} \
             ~{chastityfilter} \
             jni=t \
             in=~{input_fastq} \
