@@ -8,9 +8,9 @@ workflow ShortReadsQC {
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
-        Array[File]? input_files
-        Array[File]? input_fq1
-        Array[File]? input_fq2
+        Array[String]? input_files
+        Array[String]? input_fq1
+        Array[String]? input_fq2
         Boolean  interleaved
         String   database="/refdata/"
         Int      rqc_mem = 180
@@ -84,7 +84,7 @@ task stage_single {
     input{
         String container
         String target="raw.fastq.gz"
-        Array[File]? input_file
+        Array[String]? input_file
     }
    command <<<
 
@@ -126,8 +126,8 @@ task stage_interleave {
     String target_reads_1="raw_reads_1.fastq.gz"
     String target_reads_2="raw_reads_2.fastq.gz"
     String output_interleaved="raw.fastq.gz"
-    Array[File]? input_fastq1
-    Array[File]? input_fastq2
+    Array[String]? input_fastq1
+    Array[String]? input_fastq2
     Int file_num = length(select_first([input_fastq1, []]))
    }
 
@@ -191,7 +191,7 @@ task rqcfilter {
         String  filename_stat="filtered/filterStats.txt"
         String  filename_stat2="filtered/filterStats2.txt"
         String  filename_reproduce="filtered/reproduce.sh"
-        String? chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
     }
 
     command <<<
