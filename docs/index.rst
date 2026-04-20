@@ -18,7 +18,7 @@ Workflow Overview
 
 **Short-Reads (Illumina):**
 
-This workflow utilizes the program :literal:`rqcfilter2` from BBTools to perform quality control on raw Illumina reads (single- or paired-end) for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using :literal:`BBDuk`), and performs human/cat/dog/mouse/microbe removal (using :literal:`BMap`).
+This workflow utilizes the program :literal:`rqcfilter2` from BBTools to perform quality control on raw Illumina reads (single- or paired-end) for **shortreads**. The workflow performs quality trimming, artifact removal, linker trimming, adapter trimming, and spike-in removal (using :literal:`BBDuk`), and performs human/cat/dog/mouse/microbe removal (using :literal:`BBMap`).
 
 The following parameters are used for :literal:`rqcfilter2` in this workflow::
 
@@ -224,7 +224,7 @@ Download the example ReadsQC output for the long-reads PacBio run SRR13128014 `h
 
     **testset_fastq.gz**: raw data
 
-    **testset** or **testset.fastq**: QC results
+    **testset/** or **testset_fastq/testset.fastq_filtered.fastq.gz**: QC results
     
 
 Version History
