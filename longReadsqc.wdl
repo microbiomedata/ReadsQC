@@ -12,10 +12,9 @@ workflow LongReadsQC {
         Boolean rmdup = true
         Boolean overwrite = true
         File?   reference
-        String  container="bfoster1/img-omics:0.1.9"
         String  pbmarkdup_container="microbiomedata/pbmarkdup:1.1"
-        String  bbtools_container="microbiomedata/bbtools:39.03"
-        String  jq_container="microbiomedata/jq:1.6"
+        String  bbtools_container="microbiomedata/bbtools:39.80"
+        String  workflowmeta_container = "microbiomedata/workflowmeta:1.1.1"
         # String  outdir 
         # String  prefix = basename(file)
     }
@@ -23,7 +22,7 @@ workflow LongReadsQC {
 call stage_longread {
     input:
         file = file,
-        container = container
+        container = workflowmeta_container
 }
 
     call pbmarkdup {
@@ -72,7 +71,7 @@ call stage_longread {
 
     call finish_rqc {
         input: 
-            container = jq_container,
+            container = workflowmeta_container,
             prefix = prefix,
             filtered = bbdukReads.out_fastq,
             pbmarkdup_stats = pbmarkdup.stats,
@@ -312,7 +311,7 @@ task bbdukReads {
 task make_info_file {
     input {
         String prefix
-        String bbtools_container
+        String container
         File pbmarkdup_log
     }
 
@@ -341,7 +340,7 @@ task make_info_file {
         memory: "1 GiB"
         cpu:  1
         maxRetries: 1
-        docker: bbtools_container
+        docker: container
     }
 }
 

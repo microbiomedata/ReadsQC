@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.14-alpha.1)
+Reads QC Workflow
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -39,6 +39,7 @@ The following parameters are used for :literal:`rqcfilter2` in this workflow::
  - removemouse=true    :  Remove mouse reads via mapping.
  - barcodefilter=false :  Disable improper barcodes filter
  - chastityfilter=false:  Remove illumina reads failing chastity filter.
+ - filterbytile=false :  Disable filtering by Illumina tile information; automatically set to false when SRA-format reads are detected (reads with headers matching @SRR/ERR/DRR accessions).
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 
@@ -90,7 +91,7 @@ Workflow Dependencies
 Third party software (This is included in the Docker image.)  
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- `BBTools v38.96 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
+- `BBTools v39.80 <https://jgi.doe.gov/data-and-tools/bbtools/>`_ (License: `BSD-3-Clause-LBNL <https://bitbucket.org/berkeleylab/jgi-bbtools/src/master/license.txt>`_)
 
 Requisite database
 ~~~~~~~~~~~~~~~~~~

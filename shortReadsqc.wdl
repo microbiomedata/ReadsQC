@@ -3,8 +3,7 @@ version 1.0
 
 workflow ShortReadsQC {
     input{
-        String  container="bfoster1/img-omics:0.1.9"
-        String  bbtools_container="microbiomedata/bbtools:38.96"
+        String  bbtools_container="microbiomedata/bbtools:39.80"
         String  workflow_container = "microbiomedata/workflowmeta:1.1.1"
         String  proj
         String  prefix=sub(proj, ":", "_")
@@ -20,7 +19,7 @@ workflow ShortReadsQC {
     if (interleaved) {
         call stage_single {
             input:
-                container = container,
+                container = bbtools_container,
                 input_file = input_files
         }
     }
@@ -43,7 +42,8 @@ workflow ShortReadsQC {
             database = database,
             memory = rqc_mem,
             container = bbtools_container,
-            chastityfilter_flag = chastityfilter_flag
+            chastityfilter_flag = chastityfilter_flag,
+            filterbytile_flag = !select_first([stage_single.is_external_sra, stage_interleave.is_external_sra, false])
     }
     
     call stats_jsons {
@@ -55,7 +55,7 @@ workflow ShortReadsQC {
     call make_info_file {
         input: 
             info_file = qc.info_file,
-            container = container,
+            container = workflow_container,
             prefix = prefix
     }
 
@@ -103,11 +103,20 @@ task stage_single {
     # Capture the start time
     date --iso-8601=seconds > start.txt
 
+    # Check if reads are SRA format
+    first_line=$(zcat ~{target} 2>/dev/null | head -1 || head -1 ~{target})
+    if echo "$first_line" | grep -qE '^@(SRR|ERR|DRR)[0-9]+(\.[0-9]+)?'; then
+        echo "true" > is_external_sra.txt
+    else
+        echo "false" > is_external_sra.txt
+    fi
+
    >>>
 
    output{
       File reads_fastq = "~{target}"
       String start = read_string("start.txt")
+      Boolean is_external_sra = read_boolean("is_external_sra.txt")
    }
 
    runtime {
@@ -161,11 +170,20 @@ task stage_interleave {
         # Capture the start time
         date --iso-8601=seconds > start.txt
 
+        # Check if reads are SRA format
+        first_line=$(zcat ~{target_reads_1} 2>/dev/null | head -1 || head -1 ~{target_reads_1})
+        if echo "$first_line" | grep -qE '^@(SRR|ERR|DRR)[0-9]+(\.[0-9]+)?'; then
+            echo "true" > is_external_sra.txt
+        else
+            echo "false" > is_external_sra.txt
+        fi
+
    >>>
 
    output{
       File reads_fastq = "~{output_interleaved}"
       String start = read_string("start.txt")
+      Boolean is_external_sra = read_boolean("is_external_sra.txt")
    }
 
    runtime {
@@ -183,6 +201,7 @@ task rqcfilter {
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
+        Boolean filterbytile_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
         Int    threads
@@ -192,6 +211,7 @@ task rqcfilter {
         String  filename_stat2="filtered/filterStats2.txt"
         String  filename_reproduce="filtered/reproduce.sh"
         String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String filterbytile = if (filterbytile_flag) then "filterbytile=t" else "filterbytile=f"
     }
 
     command <<<
@@ -221,6 +241,7 @@ task rqcfilter {
             removecat=t \
             removemouse=t \
             khist=t \
+            ~{filterbytile} \
             removemicrobes=t \
             sketch \
             kapa=t \
