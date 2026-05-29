@@ -43,6 +43,7 @@ workflow rqcfilter{
                 interleaved = is_interleaved,
                 proj = proj,
                 chastityfilter_flag = if (has_accessions) then false else chastityfilter_flag
+                filterbytile_flag = if (has_accessions) then false else filterbytile_flag
         }
     }
 

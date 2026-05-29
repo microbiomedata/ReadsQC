@@ -15,6 +15,7 @@ workflow ShortReadsQC {
         String   database="/refdata/"
         Int      rqc_mem = 180
         Boolean? chastityfilter_flag
+        Boolean? filterbytile_flag
     }
 
     if (interleaved) {
@@ -44,7 +45,7 @@ workflow ShortReadsQC {
             memory = rqc_mem,
             container = bbtools_container,
             chastityfilter_flag = chastityfilter_flag,
-            filterbytile_flag = !select_first([stage_single.is_external_sra, stage_interleave.is_external_sra, false])
+            filterbytile_flag = filterbytile_flag
     }
     
     call stats_jsons {
@@ -104,20 +105,11 @@ task stage_single {
     # Capture the start time
     date --iso-8601=seconds > start.txt
 
-    # Check if reads are SRA format
-    first_line=$(zcat ~{target} 2>/dev/null | head -1 || head -1 ~{target})
-    if echo "$first_line" | grep -qE '^@(SRR|ERR|DRR)[0-9]+(\.[0-9]+)?'; then
-        echo "true" > is_external_sra.txt
-    else
-        echo "false" > is_external_sra.txt
-    fi
-
    >>>
 
    output{
       File reads_fastq = "~{target}"
       String start = read_string("start.txt")
-      Boolean is_external_sra = read_boolean("is_external_sra.txt")
    }
 
    runtime {
@@ -168,23 +160,11 @@ task stage_interleave {
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
 
-        # Capture the start time
-        date --iso-8601=seconds > start.txt
-
-        # Check if reads are SRA format
-        first_line=$(zcat ~{target_reads_1} 2>/dev/null | head -1 || head -1 ~{target_reads_1})
-        if echo "$first_line" | grep -qE '^@(SRR|ERR|DRR)[0-9]+(\.[0-9]+)?'; then
-            echo "true" > is_external_sra.txt
-        else
-            echo "false" > is_external_sra.txt
-        fi
-
    >>>
 
    output{
       File reads_fastq = "~{output_interleaved}"
       String start = read_string("start.txt")
-      Boolean is_external_sra = read_boolean("is_external_sra.txt")
    }
 
    runtime {
