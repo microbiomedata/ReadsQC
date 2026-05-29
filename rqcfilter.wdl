@@ -14,6 +14,7 @@ workflow rqcfilter{
     Boolean        interleaved
     Boolean        shortRead
     Boolean?       chastityfilter_flag
+    Boolean?       filterbytile_flag
   }
     
     Boolean has_accessions = defined(accessions) && length(select_first([accessions, []])) > 0
@@ -42,7 +43,7 @@ workflow rqcfilter{
                 input_fq2 = if is_interleaved then [] else select_first([sra2fastq.output_fq2, input_fq2]),
                 interleaved = is_interleaved,
                 proj = proj,
-                chastityfilter_flag = if (has_accessions) then false else chastityfilter_flag
+                chastityfilter_flag = if (has_accessions) then false else chastityfilter_flag,
                 filterbytile_flag = if (has_accessions) then false else filterbytile_flag
         }
     }

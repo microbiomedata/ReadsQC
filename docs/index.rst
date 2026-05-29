@@ -39,7 +39,7 @@ The following parameters are used for :literal:`rqcfilter2` in this workflow::
  - removemouse=true    :  Remove mouse reads via mapping.
  - barcodefilter=false :  Disable improper barcodes filter
  - chastityfilter=false:  Remove illumina reads failing chastity filter.
- - filterbytile=false :  Disable filtering by Illumina tile information; automatically set to false when SRA-format reads are detected (reads with headers matching @SRR/ERR/DRR accessions).
+ - filterbytile=false :  Remove reads from low-quality parts of the flowcell. 
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 
