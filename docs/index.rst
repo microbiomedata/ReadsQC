@@ -6,7 +6,7 @@
          site the file is incorporated into. You can learn more about the `github_url` field at:
          https://sphinx-rtd-theme.readthedocs.io/en/stable/configuring.html#confval-github_url
 
-Reads QC Workflow (v1.0.14-alpha.1)
+Reads QC Workflow
 =============================
 
 .. image:: lrrqc_workflow2024.svg
@@ -39,6 +39,7 @@ The following parameters are used for :literal:`rqcfilter2` in this workflow::
  - removemouse=true    :  Remove mouse reads via mapping.
  - barcodefilter=false :  Disable improper barcodes filter
  - chastityfilter=false:  Remove illumina reads failing chastity filter.
+ - filterbytile=false :  Remove reads from low-quality parts of the flowcell. 
  - trimfragadapter=true:  Trim all known Illumina adapter sequences, including TruSeq and Nextera.
  - removemicrobes=true :  Remove common contaminant microbial reads via mapping, and place them in a separate file.
 

@@ -15,6 +15,7 @@ workflow ShortReadsQC {
         String   database="/refdata/"
         Int      rqc_mem = 180
         Boolean? chastityfilter_flag
+        Boolean? filterbytile_flag
     }
 
     if (interleaved) {
@@ -43,7 +44,8 @@ workflow ShortReadsQC {
             database = database,
             memory = rqc_mem,
             container = bbtools_container,
-            chastityfilter_flag = chastityfilter_flag
+            chastityfilter_flag = chastityfilter_flag,
+            filterbytile_flag = filterbytile_flag
     }
     
     call stats_jsons {
@@ -183,6 +185,7 @@ task rqcfilter {
         String  database
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
+        Boolean filterbytile_flag=true
         Int     memory
         Int     xmxmem = floor(memory * 0.75)
         Int    threads
@@ -192,6 +195,7 @@ task rqcfilter {
         String  filename_stat2="filtered/filterStats2.txt"
         String  filename_reproduce="filtered/reproduce.sh"
         String chastityfilter= if (chastityfilter_flag) then "cf=t" else "cf=f"
+        String filterbytile = if (filterbytile_flag) then "filterbytile=t" else "filterbytile=f"
     }
 
     command <<<
@@ -221,6 +225,7 @@ task rqcfilter {
             removecat=t \
             removemouse=t \
             khist=t \
+            ~{filterbytile} \
             removemicrobes=t \
             sketch \
             kapa=t \
