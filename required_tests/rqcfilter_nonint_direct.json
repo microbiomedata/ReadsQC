@@ -1,0 +1,7 @@
+{
+  "rqcfilter.input_fq1": ["https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_HLGJLBGX5_mms_R1/BMI_HLGJLBGX5_Tube34_R1.fastq.gz"],
+  "rqcfilter.input_fq2": ["https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_HLGJLBGX5_mms_R2/BMI_HLGJLBGX5_Tube34_R2.fastq.gz"],
+  "rqcfilter.proj": "nmdc:xxxxxxx",
+  "rqcfilter.interleaved": false,
+  "rqcfilter.shortRead": true
+}

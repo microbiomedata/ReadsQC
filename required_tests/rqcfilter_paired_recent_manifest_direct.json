@@ -1,0 +1,13 @@
+{
+  "rqcfilter.input_fq1": [
+    "https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_H7FFKBGX5_mms_R1/BMI_H7FFKBGX5_Plate10WellA2_R1.fastq.gz",
+    "https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_HLGJLBGX5_mms_R1/BMI_HLGJLBGX5_Plate10WellA2_R1.fastq.gz"
+  ],
+  "rqcfilter.input_fq2": [
+    "https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_H7FFKBGX5_mms_R2/BMI_H7FFKBGX5_Plate10WellA2_R2.fastq.gz",
+    "https://storage.googleapis.com/neon-microbial-raw-seq-files/2023/BMI_HLGJLBGX5_mms_R2/BMI_HLGJLBGX5_Plate10WellA2_R2.fastq.gz"
+  ],
+  "rqcfilter.shortRead": true,
+  "rqcfilter.interleaved": false,
+  "rqcfilter.proj": "nmdc:xxxxxxx"
+}

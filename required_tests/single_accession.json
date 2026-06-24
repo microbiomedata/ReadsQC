@@ -1,0 +1,8 @@
+{
+  "rqcfilter.accessions": [
+    "ERX4811336"
+  ],
+  "rqcfilter.proj": "nmdc:xxxxxxx",
+  "rqcfilter.interleaved": false,
+  "rqcfilter.shortRead": true
+}

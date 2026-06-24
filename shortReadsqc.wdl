@@ -44,6 +44,7 @@ workflow ShortReadsQC {
             database = database,
             memory = rqc_mem,
             container = bbtools_container,
+            interleaved = interleaved,
             chastityfilter_flag = chastityfilter_flag,
             filterbytile_flag = filterbytile_flag
     }
@@ -155,7 +156,7 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory}G trimreaddescription=t in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
+        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
 
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
@@ -183,6 +184,7 @@ task rqcfilter {
         File?   input_fastq
         String  container
         String  database
+        Boolean interleaved
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Boolean filterbytile_flag=true
@@ -236,6 +238,10 @@ task rqcfilter {
             rqcfilterdata=~{rqcfilterdata} \
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
+
+        # Validate the filtered output if interleaved
+        if ~{interleaved} = true; then
+            reformat.sh -Xmx~{memory}G verifypaired=t in=~{rqcfilterdata}
 
     >>>
 
