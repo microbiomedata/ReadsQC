@@ -239,8 +239,8 @@ task rqcfilter {
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
 
-        # Validate the filtered output if interleaved
-        if ~{interleaved} = true; then
+        # Validate the filtered output is paired if not interleaved
+        if ~{interleaved} = false; then
             reformat.sh -Xmx~{memory}G verifypaired=t in=~{rqcfilterdata}
 
     >>>
