@@ -10,6 +10,6 @@ Each PR to ReadsQC MUST come with successful jaws tests using the below jsons, i
 | Use Case                                               | Last successful run on NERSC in prod | ReadsQC Json                                  | DG Id                                               |
 |--------------------------------------------------------|--------------------------------------|-----------------------------------------------|-----------------------------------------------------|
 | Short Read - Non Interleave - SRA - Non Manifest       | n/a                                  | single_accession.json                         | n/a                                                 |
-| Short Read - Non Interleave - non SRA - Non Manifest   | 1/12/26                              | rqcfilter_nonint_direct.json                  | nmdc:dgns-11-kc8d3v87                               |
+| Short Read - Non Interleave - non SRA - Non Manifest   | 1/12/26                              | rqcfilter_nonint_direct.json                  | nmdc:dgns-11-tdd66338                              |
 | Short Read - Non Interleave - non SRA - Manifest       | 5/23/26                              | rqcfilter_paired_recent_manifest_direct.json  | nmdc:dgns-15-6m4kha03, nmdc:omprc-11-2vny0554       |
 | Short Read - Interleave - non SRA - Non Manifest       | 1/26/24                              | rqcfilter_int_recent.json                     | nmdc:omprc-11-x221tr39                              |
