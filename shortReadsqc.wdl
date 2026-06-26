@@ -44,7 +44,6 @@ workflow ShortReadsQC {
             database = database,
             memory = rqc_mem,
             container = bbtools_container,
-            interleaved = interleaved,
             chastityfilter_flag = chastityfilter_flag,
             filterbytile_flag = filterbytile_flag
     }
@@ -184,7 +183,6 @@ task rqcfilter {
         File?   input_fastq
         String  container
         String  database
-        Boolean interleaved
         String  rqcfilterdata = database + "/RQCFilterData"
         Boolean chastityfilter_flag=true
         Boolean filterbytile_flag=true
