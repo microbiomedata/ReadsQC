@@ -1,0 +1,15 @@
+# Required Testing
+
+Jsons in this folder cover the various data types handled by this workflow, as detailed in the below table. 
+
+Each PR to ReadsQC MUST come with successful jaws tests using the below jsons, in addition to any other relevant testing. Provide the jaws ids in a comment on your PR. If additional data types become available, you are REQUIRED TO ADD A TEST JSON to this folder. Beyond having a status of 'succeeded', you MUST MANUALLY CHECK that the output of these tests:
+1) have a correctly annotated fastq, indicating which reads are 1 or 2 if they are non-interleaved
+2) have correctly populated stats that match those existing in mongodb
+
+
+| Use Case                                               | Last successful run on NERSC in prod | ReadsQC Json                                  | DG Id                                               |
+|--------------------------------------------------------|--------------------------------------|-----------------------------------------------|-----------------------------------------------------|
+| Short Read - Non Interleave - SRA - Non Manifest       | n/a                                  | single_accession.json                         | n/a                                                 |
+| Short Read - Non Interleave - non SRA - Non Manifest   | 1/12/26                              | rqcfilter_nonint_direct.json                  | nmdc:dgns-11-kc8d3v87                               |
+| Short Read - Non Interleave - non SRA - Manifest       | 5/23/26                              | rqcfilter_paired_recent_manifest_direct.json  | nmdc:dgns-15-6m4kha03, nmdc:omprc-11-2vny0554       |
+| Short Read - Interleave - non SRA - Non Manifest       | 1/26/24                              | rqcfilter_int_recent.json                     | nmdc:omprc-11-x221tr39                              |

@@ -155,7 +155,7 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory}G trimreaddescription=t in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
+        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
 
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
@@ -236,6 +236,9 @@ task rqcfilter {
             rqcfilterdata=~{rqcfilterdata} \
             > >(tee -a  ~{filename_outlog}) \
             2> >(tee -a ~{filename_errlog}  >&2)
+
+        # Validate the filtered output is paired if not interleaved
+            reformat.sh -Xmx~{memory}G verifypaired=t in=filtered/raw.anqdpht.fastq.gz
 
     >>>
 

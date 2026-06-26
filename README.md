@@ -74,3 +74,6 @@ The main QC fastq output is named by prefix_filtered.fastq.gz.
 
 ## Link to Doc Site
 Please refer [here](https://docs.microbiomedata.org/workflows/chapters/3_Metagenome_Reads_QC/) for more information.
+
+## Required Testing
+Contributions to this repository must undergo direct testing via jaws, using the test jsons in the required_tests folder.
