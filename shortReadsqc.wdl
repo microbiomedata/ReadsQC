@@ -240,8 +240,7 @@ task rqcfilter {
             2> >(tee -a ~{filename_errlog}  >&2)
 
         # Validate the filtered output is paired if not interleaved
-        if ~{interleaved} = false; then
-            reformat.sh -Xmx~{memory}G verifypaired=t in=~{rqcfilterdata}
+            reformat.sh -Xmx~{memory}G verifypaired=t in=filtered/raw.anqdpht.fastq.gz
 
     >>>
 
