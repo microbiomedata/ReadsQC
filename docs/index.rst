@@ -124,7 +124,7 @@ Sample dataset(s)
 Input
 ------
 
-A `JSON file <https://github.com/microbiomedata/ReadsQC/blob/documentation/input.json>`_ containing the following information: 
+A JSON file containing the following information: 
 
 1. the path to the interleaved fastq file (longreads and shortreads) 
 2. forwards reads fastq file (when input_interleaved is false)
