@@ -42,6 +42,7 @@ workflow rqcfilter{
                 input_fq1 = if is_interleaved then [] else select_first([sra2fastq.output_fq1, input_fq1]),
                 input_fq2 = if is_interleaved then [] else select_first([sra2fastq.output_fq2, input_fq2]),
                 interleaved = is_interleaved,
+                sra = has_accessions,
                 proj = proj,
                 chastityfilter_flag = if (has_accessions) then false else chastityfilter_flag,
                 filterbytile_flag = if (has_accessions) then false else filterbytile_flag

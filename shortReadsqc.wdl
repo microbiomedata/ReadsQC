@@ -12,6 +12,7 @@ workflow ShortReadsQC {
         Array[File]? input_fq1
         Array[File]? input_fq2
         Boolean  interleaved
+        Boolean sra
         String   database="/refdata/"
         Int      rqc_mem = 180
         Boolean? chastityfilter_flag
@@ -31,6 +32,7 @@ workflow ShortReadsQC {
             input:
                 input_fastq1 = input_fq1,
                 input_fastq2 = input_fq2,
+                sra = sra,
                 container = bbtools_container,
                 memory = 10
             }
@@ -130,6 +132,7 @@ task stage_interleave {
     String output_interleaved="raw.fastq.gz"
     Array[File]? input_fastq1
     Array[File]? input_fastq2
+    Boolean sra
     Int file_num = length(select_first([input_fastq1, []]))
    }
 
@@ -155,7 +158,11 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} 
+        if sra; then
+            reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} addslash=t
+        else
+            reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
+        fi
 
         # Validate that the read1 and read2 files are sorted correctly
         reformat.sh -Xmx~{memory}G verifypaired=t in=~{output_interleaved}
