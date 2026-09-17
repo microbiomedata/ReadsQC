@@ -158,7 +158,7 @@ task stage_interleave {
             cat $fq2_name  >> ~{target_reads_2}
         done
 
-        if sra; then
+        if ~{sra}; then
             reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved} addslash=t
         else
             reformat.sh -Xmx~{memory}G in1=~{target_reads_1} in2=~{target_reads_2} out=~{output_interleaved}
